@@ -1,4 +1,3 @@
-#starting template
 import config
 import bcrypt
 from datetime import datetime
@@ -26,7 +25,7 @@ class User(Base, UserMixin):
     password = Column(String(64), nullable=False)
     salt = Column(String(64), nullable=False)
 
-    posts = relationship("Post", uselist=True)
+    #posts = relationship("Post", uselist=True)
 
     def set_password(self, password):
         self.salt = bcrypt.gensalt()
@@ -37,17 +36,50 @@ class User(Base, UserMixin):
         password = password.encode("utf-8")
         return bcrypt.hashpw(password, self.salt.encode("utf-8")) == self.password
 
-class Post(Base):
-    __tablename__ = "posts"
+# class Post(Base):
+#     __tablename__ = "posts"
     
-    id = Column(Integer, primary_key=True)
-    title = Column(String(64), nullable=False)
-    body = Column(Text, nullable=False)
-    created_at = Column(DateTime, nullable=False, default=datetime.now)
-    posted_at = Column(DateTime, nullable=True, default=None)
-    user_id = Column(Integer, ForeignKey("users.id"))
+#     id = Column(Integer, primary_key=True)
+#     title = Column(String(64), nullable=False)
+#     body = Column(Text, nullable=False)
+#     created_at = Column(DateTime, nullable=False, default=datetime.now)
+#     posted_at = Column(DateTime, nullable=True, default=None)
+#     user_id = Column(Integer, ForeignKey("users.id"))
 
-    user = relationship("User")
+#     user = relationship("User")
+
+
+class Series(Base):
+    __tablename__ = "series"
+    id = Column(Integer, primary_key=True)
+    extnernal_id = Column(Integer, nullable = True)
+    title = Column(String(64), nullable = True)
+    overview = Column(Text, nullable = True)
+    banner = Column(String, nullable = True)
+    #first_aired = Column(String(64), nullable = True) 
+    genre = Column(String(64), nullable = True)
+    
+    episodes = relationship("Episode")
+    
+    
+
+class Episode(Base):
+    __tablename__ = "episodes"
+    id = Column(Integer, primary_key=True)
+    extnernal_id = Column(Integer, nullable = True)
+    title = Column(String(64), nullable = True)
+    ep_num = Column(Integer(64), nullable = True)
+    season_num = Column(Integer(64),nullable = True)
+    overview = Column(Text, nullable = True)
+    #first_aired = Column(String(64), nullable = True) 
+    image = Column(String, nullable = True)
+
+    series_id = Column(Integer, ForeignKey('series.id'))
+    series = relationship("Series")
+
+
+
+
 
 
 def create_tables():
@@ -55,8 +87,15 @@ def create_tables():
     u = User(email="test@test.com")
     u.set_password("unicorn")
     session.add(u)
-    p = Post(title="This is a test post", body="This is the body of a test post.")
-    u.posts.append(p)
+
+    # p = Post(title="This is a test post", body="This is the body of a test post.")
+    # u.posts.append(p)
+    s = Series(extnernal_id=123, title = "Broadchurch", overview = "lorem ipsum", genre = "Drama | Mystery")
+    session.add(s)
+
+    e = Episode(extnernal_id= 456, title = "Frist Ep Title", ep_num = 1, season_num = 1, overview = "more lorem ipsum", series_id = "1")
+    session.add(e)
+
     session.commit()
 
 if __name__ == "__main__":
