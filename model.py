@@ -74,7 +74,7 @@ class Episode(Base):
     title = Column(String(64), nullable = True)
     overview = Column(Text, nullable = True)
     
-    image = Column(String, nullable = True)
+    image = Column(String(64), nullable = True)
 
     series_id = Column(Integer, ForeignKey('series.id'))
 
@@ -119,6 +119,19 @@ class ToWatch(Base):
     series = relationship("Series", backref = "to_watch")
 
     #user.to_watch -->list of to_watch objs
+
+
+class UserSeries(Base):
+    __tablename__ = "user_series"
+    id = Column(Integer, primary_key = True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    series_id = Column(Integer, ForeignKey('series.id')) #local series id
+    state = Column(String(65), nullable = False) #can be set to "watched", "to-watch", "watching"
+
+    user = relationship("User", backref = "user_series")
+    series = relationship("Series", backref = "user_series")
+
+
 
 class Favorite(Base):
     __tablename__ = "favorites"
@@ -257,10 +270,21 @@ def add_series(external_series_id):
 
     external_id = int(pyQ('id').text())
 
-    first_aired = datetime.strptime(pyQ('FirstAired').text(), '%Y-%m-%d')
-    airs_time = datetime.strptime(pyQ('Airs_Time').text(), '%I:%M %p')
-    airs_day_of_week = pyQ('Airs_DayOfWeek').text()
+    date_str=pyQ('FirstAired').text()
+    if date_str != '':
+        first_aired = datetime.strptime(date_str, '%Y-%m-%d')
+    else:
+        first_aired = None
+  
 
+    time_str = pyQ('Airs_Time').text()
+    if time_str != '':
+        airs_time = datetime.strptime(time_str, '%I:%M %p')
+    else:
+        first_aired =None
+ 
+
+    airs_day_of_week = pyQ('Airs_DayOfWeek').text()
     status = pyQ('Status').text()
     title = pyQ('SeriesName').text()
     #overview = pyQ('Overview').text()
@@ -291,7 +315,12 @@ def add_episodes(external_series_id):
             external_id = int(pyQ(e).find('id').text())
             ep_num = int(pyQ(e).find('EpisodeNumber').text())
             
-            first_aired = datetime.strptime(pyQ(e).find('FirstAired').text(), '%Y-%m-%d')
+            date_str=pyQ(e).find('FirstAired').text()
+            if date_str != '':
+                first_aired = datetime.strptime(date_str, '%Y-%m-%d')
+            else:
+                first_aired = None
+
             title = pyQ(e).find('EpisodeName').text()
             #overview = pyQ(e).find('Overview').text()
             image = pyQ(e).find('filename').text()
