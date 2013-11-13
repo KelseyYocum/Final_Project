@@ -47,9 +47,9 @@ class Series(Base):
     id = Column(Integer, primary_key=True)
     external_id = Column(Integer, nullable = True)
 
-    first_aired = Column(String(64), nullable = True) 
+    first_aired = Column(DateTime, nullable = True) 
     airs_day_of_week = Column(String(10), nullable = True)
-    airs_time = Column(String(64), nullable = True)
+    airs_time = Column(DateTime, nullable = True)
     status = Column(String(12), nullable = True)
     title = Column(String(64), nullable = True)
     overview = Column(Text, nullable = True)
@@ -69,7 +69,7 @@ class Episode(Base):
     ep_num = Column(Integer(64), nullable = True)
     season_num = Column(Integer(64),nullable = True)
 
-    first_aired = Column(String(64), nullable = True) 
+    first_aired = Column(DateTime, nullable = True) 
 
     title = Column(String(64), nullable = True)
     overview = Column(Text, nullable = True)
@@ -163,7 +163,7 @@ class Review(Base):
     user_id = Column(Integer, ForeignKey('users.id')) #the author
     ep_id = Column(Integer, ForeignKey('episodes.id')) #local ep id
     body = Column(Text, nullable = False)
-    #date = Column(DateTime, nullable = False)
+    #date = Column(DateTime, nullable = True)
 
     user = relationship("User", backref = "reviews")
     episode = relationship("Episode", backref = "reviews")
@@ -179,7 +179,7 @@ class Comment(Base):
     user_id = Column(Integer, ForeignKey('users.id')) #comment author
     review_id = Column(Integer, ForeignKey('reviews.id')) 
     body = Column(Text, nullable = False)
-    #date = Column(DateTime, nullable = False)
+    #date = Column(DateTime, nullable = True)
 
     user = relationship("User", backref = "comments")
     review = relationship("Review", backref = "comments")
@@ -200,7 +200,7 @@ class Recommendation(Base):
     recommendee_id = Column(Integer, ForeignKey('users.id'))
     series_id = Column(Integer, ForeignKey('series.id')) #local series id
     body = Column(Text, nullable = False)
-    #date = Column(DateTime, nullable = False)
+    #date = Column(DateTime, nullable = True)
 
     recommender = relationship("User", foreign_keys =[recommender_id], backref = "recommendations_given")
     recommendee = relationship("User", foreign_keys =[recommendee_id], backref = "recommendations_recv")
@@ -256,16 +256,20 @@ def add_series(external_series_id):
     pyQ = parse_series(external_series_id)
 
     external_id = int(pyQ('id').text())
-    first_aired = pyQ('FirstAired').text()
+
+    first_aired = datetime.strptime(pyQ('FirstAired').text(), '%Y-%m-%d')
+    airs_time = datetime.strptime(pyQ('Airs_Time').text(), '%I:%M %p')
     airs_day_of_week = pyQ('Airs_DayOfWeek').text()
-    airs_time = pyQ('Airs_Time').text()
+
     status = pyQ('Status').text()
     title = pyQ('SeriesName').text()
     #overview = pyQ('Overview').text()
     genre = pyQ('Genre').text() #might want another table? Or can store a list?
     banner = pyQ('banner').text()
 
-    s = Series(external_id = external_id, first_aired = first_aired, airs_day_of_week = airs_day_of_week, airs_time = airs_time, status = status, title = title, genre = genre, banner = banner)
+    s = Series(external_id = external_id, first_aired = first_aired, 
+        airs_day_of_week = airs_day_of_week, airs_time = airs_time, 
+        status = status, title = title, genre = genre, banner = banner)
     session.add(s)
     session.commit()
 
@@ -275,30 +279,36 @@ def add_series(external_series_id):
 
 
 def add_episodes(external_series_id):
-    pyQ_with_eps = parse_series_with_eps(external_series_id)
-    episodes = pyQ_with_eps('Episode')
+    pyQ = parse_series_with_eps(external_series_id)
+    episodes = pyQ('Episode')
+
 
     for e in episodes:
-        external_id = int(pyQ_with_eps(e).find('id').text())
-        ep_num = int(pyQ_with_eps(e).find('EpisodeNumber').text())
-        season_num = int(pyQ_with_eps(e).find('SeasonNumber').text())
-        first_aired = pyQ_with_eps(e).find('FirstAired').text()
-        title = pyQ_with_eps(e).find('EpisodeName').text()
-        #overview = pyQ_with_eps(e).find('Overview').text()
-        image = pyQ_with_eps(e).find('filename').text()
+        season_num = int(pyQ(e).find('SeasonNumber').text())
 
-        series = session.query(Series).filter_by(external_id = external_series_id).one()
-        series_id = series.id
+        #not adding season 0 episodes because those refer to releases like interviews or making-ofs, not actual episodes
+        if season_num != 0:
+            external_id = int(pyQ(e).find('id').text())
+            ep_num = int(pyQ(e).find('EpisodeNumber').text())
+            
+            first_aired = datetime.strptime(pyQ(e).find('FirstAired').text(), '%Y-%m-%d')
+            title = pyQ(e).find('EpisodeName').text()
+            #overview = pyQ(e).find('Overview').text()
+            image = pyQ(e).find('filename').text()
 
-        ep = Episode(external_id = external_id, ep_num = ep_num, season_num = season_num, first_aired = first_aired, title = title, image = image, series_id = series_id)
+            series = session.query(Series).filter_by(external_id = external_series_id).one()
+            series_id = series.id
 
-        session.add(ep)
+            ep = Episode(external_id = external_id, ep_num = ep_num, season_num = season_num, first_aired = first_aired, title = title, image = image, series_id = series_id)
+
+            session.add(ep)
     
     session.commit()
 
 
 
 
+###########################################################
 
 def create_tables():
     Base.metadata.create_all(engine)
