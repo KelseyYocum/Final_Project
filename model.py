@@ -30,7 +30,6 @@ class User(Base, UserMixin):
     password = Column(String(64), nullable=False)
     salt = Column(String(64), nullable=False)
 
-    #friends
 
 
     def set_password(self, password):
@@ -42,34 +41,21 @@ class User(Base, UserMixin):
         password = password.encode("utf-8")
         return bcrypt.hashpw(password, self.salt.encode("utf-8")) == self.password
 
-# class Post(Base):
-#     __tablename__ = "posts"
-    
-#     id = Column(Integer, primary_key=True)
-#     title = Column(String(64), nullable=False)
-#     body = Column(Text, nullable=False)
-#     created_at = Column(DateTime, nullable=False, default=datetime.now)
-#     posted_at = Column(DateTime, nullable=True, default=None)
-#     user_id = Column(Integer, ForeignKey("users.id"))
-
-#     user = relationship("User")
-
 
 class Series(Base):
     __tablename__ = "series"
     id = Column(Integer, primary_key=True)
     external_id = Column(Integer, nullable = True)
 
-    #first_aired = Column(String(64), nullable = True) 
-    # airs_day_of_week = Column(String(10), nullable = True)
-    # airs_time = Column(String(64), nullable = True)
-    # status = Column(String(12), nullable = True)
-
+    first_aired = Column(String(64), nullable = True) 
+    airs_day_of_week = Column(String(10), nullable = True)
+    airs_time = Column(String(64), nullable = True)
+    status = Column(String(12), nullable = True)
     title = Column(String(64), nullable = True)
     overview = Column(Text, nullable = True)
     genre = Column(String(64), nullable = True)
     
-    # banner = Column(String, nullable = True)
+    banner = Column(String(64), nullable = True)
     
     episodes = relationship("Episode", backref = "series")
     
@@ -83,20 +69,17 @@ class Episode(Base):
     ep_num = Column(Integer(64), nullable = True)
     season_num = Column(Integer(64),nullable = True)
 
-    #first_aired = Column(String(64), nullable = True) 
+    first_aired = Column(String(64), nullable = True) 
 
     title = Column(String(64), nullable = True)
     overview = Column(Text, nullable = True)
     
-    # image = Column(String, nullable = True)
+    image = Column(String, nullable = True)
 
     series_id = Column(Integer, ForeignKey('series.id'))
 
-    #backref with .series
-    
 
-# class Friendships(Base):
-#     pass
+    
 
 
 ################ The Lists ####################
@@ -205,7 +188,7 @@ class Comment(Base):
     # currently set up for comment on only reviews, not feed stuff (?) 
 
 
-#recommendations from friends, not an engine
+# recommendations from friends, not an engine
 class Recommendation(Base):
     __tablename__ = "recommendations"
     id = Column(Integer, primary_key = True)
@@ -219,41 +202,101 @@ class Recommendation(Base):
     body = Column(Text, nullable = False)
     #date = Column(DateTime, nullable = False)
 
-    # recommender = relationship("User", foreign_keys =[recommender_id], backref = "recommendations")
-    # recommendee = relationship("User", foreign_keys =[recommendee_id], backref = "recommendations")
-
-    recommender = relationship("User", foreign_keys =[recommender_id])
-    recommendee = relationship("User", foreign_keys =[recommendee_id])
+    recommender = relationship("User", foreign_keys =[recommender_id], backref = "recommendations_given")
+    recommendee = relationship("User", foreign_keys =[recommendee_id], backref = "recommendations_recv")
 
     series = relationship("Series", backref = "recommendations")
 
-    # user.recommendations -->list of recommendation objs
+    # user.recommendations_given -->list of recommendation objs that user has given
+    # user.recommendations_recv -->list of recommendation objs that user has recieved
     # can only recommend series
 
 
-# class Friendship(Base):
-#     __tablename__ = "friendships"
-#     id = Column(Integer, primary_key=True)
-#     user_id = Column(Integer, ForeignKey('users.id'))
-#     friend_id = Column(Integer, ForeignKey('users.id'))
+class Friendship(Base):
+    __tablename__ = "friendships"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    friend_id = Column(Integer, ForeignKey('users.id'))
 
-#     user = relationship("User", backref = "recommendations")
-#     friend = relationship("User", backref = "recommendations")
+    user = relationship("User", foreign_keys = [user_id], backref = "friends")
+    # friend = relationship("User", foreign_keys = [friend_id], backref = "friends")
+    # user.friends --> list of friendship objs, all friends of user
 
 
-################# Table Functions #####################
+
+################## Table Functions #####################
 
 def parse_series(external_series_id):
-    r = requests.get('http://thetvdb.com/data/series/'+ external_series_id +'/all')
+    r = requests.get('http://thetvdb.com/data/series/'+ external_series_id)
     xml_doc = r.text
     xml_doc = xml_doc.encode("utf-8")
 
     pyQ = pq(xml_doc, parser = "xml")
     return pyQ
 
+def parse_series_with_eps(external_series_id):
+    r = requests.get('http://thetvdb.com/data/series/'+ external_series_id+'/all/')
+    xml_doc = r.text
+    xml_doc = xml_doc.encode("utf-8")
+
+    pyQ = pq(xml_doc, parser = "xml")
+    return pyQ
+
+def parse_episode(external_series_id, season_num, ep_num):
+    r = requests.get('http://thetvdb.com/data/series/'+external_series_id+'/default/'+season_num+'/'+ep_num)
+    xml_doc = r.text
+    xml_doc = xml_doc.encode("utf-8")
+
+    pyQ = pq(xml_doc, parser = "xml")
+    return pyQ
+
+
 #add series to local db from api db given an api db series id
 def add_series(external_series_id):
-    data = parse_series(external_series_id)
+    pyQ = parse_series(external_series_id)
+
+    external_id = int(pyQ('id').text())
+    first_aired = pyQ('FirstAired').text()
+    airs_day_of_week = pyQ('Airs_DayOfWeek').text()
+    airs_time = pyQ('Airs_Time').text()
+    status = pyQ('Status').text()
+    title = pyQ('SeriesName').text()
+    #overview = pyQ('Overview').text()
+    genre = pyQ('Genre').text() #might want another table? Or can store a list?
+    banner = pyQ('banner').text()
+
+    s = Series(external_id = external_id, first_aired = first_aired, airs_day_of_week = airs_day_of_week, airs_time = airs_time, status = status, title = title, genre = genre, banner = banner)
+    session.add(s)
+    session.commit()
+
+    #add eps as well
+    add_episodes(external_series_id)
+
+
+
+def add_episodes(external_series_id):
+    pyQ_with_eps = parse_series_with_eps(external_series_id)
+    episodes = pyQ_with_eps('Episode')
+
+    for e in episodes:
+        external_id = int(pyQ_with_eps(e).find('id').text())
+        ep_num = int(pyQ_with_eps(e).find('EpisodeNumber').text())
+        season_num = int(pyQ_with_eps(e).find('SeasonNumber').text())
+        first_aired = pyQ_with_eps(e).find('FirstAired').text()
+        title = pyQ_with_eps(e).find('EpisodeName').text()
+        #overview = pyQ_with_eps(e).find('Overview').text()
+        image = pyQ_with_eps(e).find('filename').text()
+
+        series = session.query(Series).filter_by(external_id = external_series_id).one()
+        series_id = series.id
+
+        ep = Episode(external_id = external_id, ep_num = ep_num, season_num = season_num, first_aired = first_aired, title = title, image = image, series_id = series_id)
+
+        session.add(ep)
+    
+    session.commit()
+
+
 
 
 
@@ -267,16 +310,15 @@ def create_tables():
     u2.set_password("bubbles")
     session.add(u2)
 
-    # p = Post(title="This is a test post", body="This is the body of a test post.")
-    # u.posts.append(p)
-    s = Series(external_id=123, title = "Broadchurch", overview = "lorem ipsum", genre = "Drama | Mystery")
-    session.add(s)
+  
+    # s = Series(external_id=123, title = "Broadchurch", overview = "lorem ipsum", genre = "Drama | Mystery")
+    # session.add(s)
 
-    s2 = Series(external_id=223, title = "Doctor Who", overview = "lorem ipsum", genre = "SciFi | Adventure")
-    session.add(s2)
+    # s2 = Series(external_id=223, title = "Doctor Who", overview = "lorem ipsum", genre = "SciFi | Adventure")
+    # session.add(s2)
 
-    e = Episode(external_id= 456, title = "First Ep Title", ep_num = 1, season_num = 1, overview = "more lorem ipsum", series_id = "1")
-    session.add(e)
+    #e = Episode(external_id= 456, title = "First Ep Title", ep_num = 1, season_num = 1, overview = "more lorem ipsum", series_id = "1")
+    #session.add(e)
 
     currently_w = CurrentlyWatching(user_id = 1, series_id = 1)
     currently_w2 = CurrentlyWatching(user_id = 1, series_id = 2)
@@ -294,6 +336,9 @@ def create_tables():
 
     rec = Recommendation(recommender_id = 2, recommendee_id = 1, series_id = 2, body = "blah blah blah")
     session.add(rec)
+
+    friendship = Friendship(user_id = 1, friend_id = 2)
+    session.add(friendship)
 
     session.commit()
 
