@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, request, g, session, url_for, flash
-from model import User, Post
+from model import User, Series, Episode
 from flask.ext.login import LoginManager, login_required, login_user, current_user
 from flaskext.markdown import Markdown
 import config
@@ -23,36 +23,38 @@ def load_user(user_id):
 # Adding markdown capability to the app
 Markdown(app)
 
-@app.route("/")
-def index():
-    posts = Post.query.all()
-    return render_template("index.html", posts=posts)
+# @app.route("/")
+# def index():
+#     posts = Post.query.all()
+#    return render_template("index.html", posts=posts)
 
-@app.route("/post/<int:id>")
-def view_post(id):
-    post = Post.query.get(id)
-    return render_template("post.html", post=post)
+# @app.route("/post/<int:id>")
+# def view_post(id):
+#     post = Post.query.get(id)
+#     return render_template("post.html", post=post)
 
-@app.route("/post/new")
-@login_required
-def new_post():
-    return render_template("new_post.html")
+# @app.route("/post/new")
+# @login_required
+# def new_post():
+#     return render_template("new_post.html")
 
-@app.route("/post/new", methods=["POST"])
-@login_required
-def create_post():
-    form = forms.NewPostForm(request.form)
-    if not form.validate():
-        flash("Error, all fields are required")
-        return render_template("new_post.html")
+# @app.route("/post/new", methods=["POST"])
+# @login_required
+# def create_post():
+#     form = forms.NewPostForm(request.form)
+#     if not form.validate():
+#         flash("Error, all fields are required")
+#         return render_template("new_post.html")
 
-    post = Post(title=form.title.data, body=form.body.data)
-    current_user.posts.append(post) 
+#     post = Post(title=form.title.data, body=form.body.data)
+#     current_user.posts.append(post) 
     
-    model.session.commit()
-    model.session.refresh(post)
+#     model.session.commit()
+#     model.session.refresh(post)
 
-    return redirect(url_for("view_post", id=post.id))
+#     return redirect(url_for("view_post", id=post.id))
+
+
 
 @app.route("/login")
 def login():
@@ -77,6 +79,21 @@ def authenticate():
     login_user(user)
     return redirect(request.args.get("next", url_for("index")))
 
+
+@app.route("/")
+def index():
+    series = Series.query.all()
+    return render_template("index.html", series=series)
+
+@app.route("/search")
+def search():
+    return render_template("search.html")
+
+@app.route("/search/results", methods = ["POST"])
+def search_results():
+    search_input = request.form.get("search")
+    
+    return render_template("search.html")
 
 if __name__ == "__main__":
     app.run(debug=True)

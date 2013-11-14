@@ -82,7 +82,7 @@ class Episode(Base):
     
 
 
-################ The Lists ####################
+################ The Tables ####################
 
 class CurrentlyWatching(Base):
     __tablename__ = "currently_watching"
@@ -281,7 +281,7 @@ def add_series(external_series_id):
     if time_str != '':
         airs_time = datetime.strptime(time_str, '%I:%M %p')
     else:
-        first_aired =None
+        airs_time =None
  
 
     airs_day_of_week = pyQ('Airs_DayOfWeek').text()
@@ -334,7 +334,13 @@ def add_episodes(external_series_id):
     
     session.commit()
 
+# returns list of search results (titles?)
+def search (series_title):
 
+
+
+# def store_image(img_url):
+#     img = requests.get('img_url')
 
 
 ###########################################################
@@ -350,14 +356,9 @@ def create_tables():
     session.add(u2)
 
   
-    # s = Series(external_id=123, title = "Broadchurch", overview = "lorem ipsum", genre = "Drama | Mystery")
-    # session.add(s)
-
-    # s2 = Series(external_id=223, title = "Doctor Who", overview = "lorem ipsum", genre = "SciFi | Adventure")
-    # session.add(s2)
-
-    #e = Episode(external_id= 456, title = "First Ep Title", ep_num = 1, season_num = 1, overview = "more lorem ipsum", series_id = "1")
-    #session.add(e)
+    add_series('269578')
+    add_series('78874')
+    add_series('70327')
 
     currently_w = CurrentlyWatching(user_id = 1, series_id = 1)
     currently_w2 = CurrentlyWatching(user_id = 1, series_id = 2)

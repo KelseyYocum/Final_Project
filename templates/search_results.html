@@ -1,0 +1,18 @@
+
+
+
+{% extends 'base.html' %}
+{% block body %}
+{% for s in series %}
+<div class="series">
+    <h2>{{s.title}}</h2>
+    <p>
+        {{s.status}}
+    </p>
+</div>
+{% else %}
+No series here!
+{% endfor %}
+{% endblock %}
+
+

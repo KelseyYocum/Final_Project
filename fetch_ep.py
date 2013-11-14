@@ -12,11 +12,24 @@ import requests
 # search http://thetvdb.com/api/GetSeries.php?seriesname=<seriesname>
 
 r = requests.get('http://thetvdb.com/data/series/121361/default/1/1')
+print 'r', r
 xml_doc = r.text
 xml_doc = xml_doc.encode("utf-8")
 
 pyQ = pq(xml_doc, parser = "xml")
 
-#print d("Writer").text().split('|')
-#d = d("Episode").eq(5).find('FirstAired')
-print pyQ
+#print pyQ("Writer").text().split('|')
+#print pyQ("Episode").eq(5).find('FirstAired')
+print pyQ('SeriesName')
+
+
+
+def parser(external_series_id):
+    r = requests.get('http://thetvdb.com/data/series/'+external_series_id+'/all/')
+    xml_doc = r.text
+    xml_doc = xml_doc.encode('utf-8')
+    pyQ = pq(xml_doc, parser = 'xml')
+
+    return pyQ
+
+
