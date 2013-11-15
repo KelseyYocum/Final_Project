@@ -4,7 +4,6 @@ import urllib
 import requests
 
 # mirror path http://thetvdb.com
-# API key FC286E28439A5A4C
 # http://thetvdb.com/data/series/121361/default/1/1
 # where d is a xml doc
 # series banner http://thetvdb.com/banners/graphical/121361-g19.jpg

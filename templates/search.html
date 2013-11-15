@@ -1,9 +1,21 @@
 {% extends "base.html" %}
 
 {% block body %}
-<form method="post">
+<form class = 'submit_form' method="post" action = "/search/results">
     
     <input type="text" name="search" placeholder="Type series name here"><br>
     <input type="submit" value ="search">
 </form>
+
+{% if series_titles == None%}
+    <p>No results yet</p>
+{% else %}
+    {% for s in series%}
+        <ul class="series_titles">
+            <li> <a href = "/series/{{pyQ(s).find('id').text()}}">{{pyQ(s).find('SeriesName').text()}}</a></li>
+        </ul>
+    {% endfor %}
+
+{% endif %}
+
 {% endblock %}

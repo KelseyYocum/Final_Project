@@ -1,3 +1,7 @@
+# import docopt
+# 
+
+
 import config
 import bcrypt
 from datetime import datetime
@@ -7,6 +11,7 @@ from sqlalchemy import create_engine, ForeignKey
 from sqlalchemy import Column, Integer, String, DateTime, Text
 
 from sqlalchemy.orm import sessionmaker, scoped_session, relationship, backref
+from sqlalchemy.schema import Table
 
 from flask.ext.login import UserMixin
 
@@ -30,6 +35,9 @@ class User(Base, UserMixin):
     password = Column(String(64), nullable=False)
     salt = Column(String(64), nullable=False)
 
+    friends = relationship('User', secondary='friendship', 
+        primaryjoin='User.id == friendship.c.from_user_id',
+        secondaryjoin='friendship.c.to_user_id == User.id')
 
 
     def set_password(self, password):
@@ -40,6 +48,17 @@ class User(Base, UserMixin):
     def authenticate(self, password):
         password = password.encode("utf-8")
         return bcrypt.hashpw(password, self.salt.encode("utf-8")) == self.password
+
+    def add_friend(self, *friends):
+        for f in friends:
+            self.friends.append(f)
+            f.friends.append(self)
+
+    # def __repr__(self):
+    #     return "<User(email={1!r})>".format(User, self.email)
+
+    # def __str__(self):
+    #     return "<User(email={1!r})>".format(User, self.email)
 
 
 class Series(Base):
@@ -82,43 +101,7 @@ class Episode(Base):
     
 
 
-################ The Tables ####################
-
-class CurrentlyWatching(Base):
-    __tablename__ = "currently_watching"
-    id = Column(Integer, primary_key = True)
-
-    user_id = Column(Integer, ForeignKey('users.id'))
-    series_id = Column(Integer, ForeignKey('series.id')) #local series id
-
-    user = relationship("User", backref = "currently_watching")
-    series = relationship("Series", backref = "currently_watching")
-
-    #user.currently_watching -->list of currently watching objs
-
-class Watched(Base):
-    __tablename__ = "watched"
-    id = Column(Integer, primary_key = True)
-
-    user_id = Column(Integer, ForeignKey('users.id'))
-    series_id = Column(Integer, ForeignKey('series.id')) #local series id
-
-    user = relationship("User", backref = "watched")
-    series = relationship("Series", backref = "watched")
-
-    #user.watched -->list of previously watched objs
-
-class ToWatch(Base):
-    __tablename__ = "to_watch"
-    id = Column(Integer, primary_key = True)
-
-    user_id = Column(Integer, ForeignKey('users.id'))
-    series_id = Column(Integer, ForeignKey('series.id')) #local series id
-
-    user = relationship("User", backref = "to_watch")
-    series = relationship("Series", backref = "to_watch")
-
-    #user.to_watch -->list of to_watch objs
+################ The Lists ####################
 
 
 class UserSeries(Base):
@@ -126,7 +109,8 @@ class UserSeries(Base):
     id = Column(Integer, primary_key = True)
     user_id = Column(Integer, ForeignKey('users.id'))
     series_id = Column(Integer, ForeignKey('series.id')) #local series id
-    state = Column(String(65), nullable = False) #can be set to "watched", "to-watch", "watching"
+    state = Column(String(65), nullable = False) #enum can be set to "watched", "to-watch", "watching"
+    #state = Column(Enum('watched', 'to-watch', 'watching', name='series_state'), nullable=False)
 
     user = relationship("User", backref = "user_series")
     series = relationship("Series", backref = "user_series")
@@ -225,15 +209,19 @@ class Recommendation(Base):
     # can only recommend series
 
 
-class Friendship(Base):
-    __tablename__ = "friendships"
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    friend_id = Column(Integer, ForeignKey('users.id'))
+# class Friendship(Base):
+#     __tablename__ = "friendships"
+#     id = Column(Integer, primary_key=True)
+#     user_id = Column(Integer, ForeignKey('users.id'))
+#     friend_id = Column(Integer, ForeignKey('users.id'))
 
-    user = relationship("User", foreign_keys = [user_id], backref = "friends")
+#     user = relationship("User", foreign_keys = [user_id], backref = "friends")
     # friend = relationship("User", foreign_keys = [friend_id], backref = "friends")
     # user.friends --> list of friendship objs, all friends of user
+
+Table('friendship', Base.metadata,
+    Column('from_user_id', Integer, ForeignKey('users.id'), primary_key=True),
+    Column('to_user_id', Integer, ForeignKey('users.id'), primary_key=True))
 
 
 
@@ -263,6 +251,12 @@ def parse_episode(external_series_id, season_num, ep_num):
     pyQ = pq(xml_doc, parser = "xml")
     return pyQ
 
+    r = requests.get(image_url)
+    fn = "{0}_s{1}_e{2}.{3}".format(series_id, season, episode, extension)
+    with open('images/'+fn, 'w') as f:
+        f.write(r.content)
+        series.image_path = fn
+
 
 #add series to local db from api db given an api db series id
 def add_series(external_series_id):
@@ -287,13 +281,13 @@ def add_series(external_series_id):
     airs_day_of_week = pyQ('Airs_DayOfWeek').text()
     status = pyQ('Status').text()
     title = pyQ('SeriesName').text()
-    #overview = pyQ('Overview').text()
+    overview = pyQ('Overview').text()
     genre = pyQ('Genre').text() #might want another table? Or can store a list?
     banner = pyQ('banner').text()
 
     s = Series(external_id = external_id, first_aired = first_aired, 
         airs_day_of_week = airs_day_of_week, airs_time = airs_time, 
-        status = status, title = title, genre = genre, banner = banner)
+        status = status, title = title, overview=overview, genre = genre, banner = banner)
     session.add(s)
     session.commit()
 
@@ -334,9 +328,6 @@ def add_episodes(external_series_id):
     
     session.commit()
 
-# returns list of search results (titles?)
-def search (series_title):
-
 
 
 # def store_image(img_url):
@@ -353,17 +344,19 @@ def create_tables():
 
     u2 = User(email="test2@test.com")
     u2.set_password("bubbles")
+    u2.add_friend(u)
     session.add(u2)
 
+    u3 = User(email='jesse@example.com')
+    u3.set_password('password')
+    u3.add_friend(u, u2)
+    session.add(u3)
   
     add_series('269578')
-    add_series('78874')
+    #add_series('78874')
     add_series('70327')
 
-    currently_w = CurrentlyWatching(user_id = 1, series_id = 1)
-    currently_w2 = CurrentlyWatching(user_id = 1, series_id = 2)
-    session.add(currently_w)
-    session.add(currently_w2)
+   
 
     rating = Rating(user_id = 1, ep_id = 2, value = 5)
     session.add(rating)
@@ -376,9 +369,6 @@ def create_tables():
 
     rec = Recommendation(recommender_id = 2, recommendee_id = 1, series_id = 2, body = "blah blah blah")
     session.add(rec)
-
-    friendship = Friendship(user_id = 1, friend_id = 2)
-    session.add(friendship)
 
     session.commit()
 

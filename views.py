@@ -1,10 +1,12 @@
 from flask import Flask, render_template, redirect, request, g, session, url_for, flash
-from model import User, Series, Episode
+from model import User, Series, Episode, requests, pq, add_series
 from flask.ext.login import LoginManager, login_required, login_user, current_user
 from flaskext.markdown import Markdown
 import config
 import forms
 import model
+
+
 
 app = Flask(__name__)
 app.config.from_object(config)
@@ -83,17 +85,39 @@ def authenticate():
 @app.route("/")
 def index():
     series = Series.query.all()
-    return render_template("index.html", series=series)
+    return render_template("index.html")
 
 @app.route("/search")
-def search():
+def search_page():
     return render_template("search.html")
+
 
 @app.route("/search/results", methods = ["POST"])
 def search_results():
     search_input = request.form.get("search")
+
+    r = requests.get('http://thetvdb.com/api/GetSeries.php?seriesname='+search_input)
+    xml_doc = r.text
+    xml_doc = xml_doc.encode('utf-8')
+    pyQ = pq(xml_doc, parser = 'xml')
+
+    series = pyQ('Series')
     
-    return render_template("search.html")
+    
+    return render_template("search.html", series = series, pyQ =pyQ) # where series is xml
+
+
+@app.route("/series/<external_series_id>")
+def display_series_info(external_series_id):
+
+    #is series already in database?
+    count = model.session.query(Series).filter_by(external_id = external_series_id).count()
+
+    if count == 0:
+        add_series(series_external_id)
+    series = model.session.query(Series).filter_by(external_id = external_series_id).one()
+
+    return render_template("series_page.html", series = series) # where series is a db object
 
 if __name__ == "__main__":
     app.run(debug=True)
