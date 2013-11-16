@@ -285,11 +285,14 @@ def add_series(external_series_id):
     genre = pyQ('Genre').text() #might want another table? Or can store a list?
     banner = pyQ('banner').text()
 
+
     s = Series(external_id = external_id, first_aired = first_aired, 
         airs_day_of_week = airs_day_of_week, airs_time = airs_time, 
         status = status, title = title, overview=overview, genre = genre, banner = banner)
     session.add(s)
     session.commit()
+    
+    store_series_image(banner, s)
 
     #add eps as well
     add_episodes(external_series_id)
@@ -323,15 +326,28 @@ def add_episodes(external_series_id):
             series_id = series.id
 
             ep = Episode(external_id = external_id, ep_num = ep_num, season_num = season_num, first_aired = first_aired, title = title, image = image, series_id = series_id)
-
+            
+            
+            
             session.add(ep)
     
     session.commit()
 
 
 
-# def store_image(img_url):
-#     img = requests.get('img_url')
+def store_series_image(img_url, series): 
+    img = requests.get('http://thetvdb.com/banners/'+img_url)
+    img = img.content
+    f = open('static/img/series'+str(series.id)+'.jpg', 'w')
+    f.write(img)
+    f.close()
+
+def store_episode_image(img_url, episode): 
+    img = requests.get('http://thetvdb.com/banners/'+img_url)
+    img = img.content
+    f = open('static/img/episodes/'+str(episode.series_id)+'/'+str(episode.ep_num)+'.jpg', 'w')
+    f.write(img)
+    f.close()
 
 
 ###########################################################
@@ -353,8 +369,8 @@ def create_tables():
     session.add(u3)
   
     add_series('269578')
-    #add_series('78874')
-    add_series('70327')
+    add_series('78874')
+    #add_series('70327')
 
    
 

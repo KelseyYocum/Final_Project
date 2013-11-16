@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, request, g, session, url_for, flash
-from model import User, Series, Episode, requests, pq, add_series
+from model import session as DB, User, Series, Episode, requests, pq, add_series
 from flask.ext.login import LoginManager, login_required, login_user, current_user
 from flaskext.markdown import Markdown
 import config
@@ -92,7 +92,7 @@ def search_page():
     return render_template("search.html")
 
 
-@app.route("/search/results", methods = ["POST"])
+@app.route("/search", methods = ["POST"])
 def search_results():
     search_input = request.form.get("search")
 
@@ -111,13 +111,43 @@ def search_results():
 def display_series_info(external_series_id):
 
     #is series already in database?
-    count = model.session.query(Series).filter_by(external_id = external_series_id).count()
+    count = DB.query(Series).filter_by(external_id = external_series_id).count()
 
     if count == 0:
-        add_series(series_external_id)
-    series = model.session.query(Series).filter_by(external_id = external_series_id).one()
+        add_series(external_series_id)
+    series = DB.query(Series).filter_by(external_id = external_series_id).one()
 
     return render_template("series_page.html", series = series) # where series is a db object
+
+
+@app.route("/series-forms")
+def series_forms():
+    return render_template("series_forms.html")
+
+@app.route("/add-user-series", methods = ["POST"])
+def add_to_user_series_table():
+    user_id = int(request.form.get("user_id"))
+    series_id = int(request.form.get("series_id"))
+    state = request.form.get("state")
+
+    new_user_series = model.UserSeries(user_id=user_id, series_id=series_id, state=state)
+    DB.add(new_user_series)
+    DB.commit()
+    return redirect(url_for('series_forms'))
+
+
+@app.route("/add-fav-series", methods = ["POST"])
+def add_to_favorite_series_table():
+    user_id = int(request.form.get("user_id"))
+    series_id = int(request.form.get("series_id"))
+
+    new_fav = model.Favorite(user_id=user_id, series_id=series_id)
+    DB.add(new_fav)
+    DB.commit()
+    return redirect(url_for('series_forms'))
+
+
+    
 
 if __name__ == "__main__":
     app.run(debug=True)

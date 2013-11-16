@@ -7,4 +7,18 @@
     <li>{{series.overview}}</li>
 </ul>
 
+<a id = "submit">add to fav</a>
+
+<script type="text/javascript">
+
+
+$('#submit').click(function(e) {
+    console.log('link clicked!');
+    var seriesId = {{series.id}};
+    var userId = 1;
+    $.post("/add-fav-series", {series_id:seriesId, user_id:userId});
+
+});
+
+</script>
 {% endblock %}

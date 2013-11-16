@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<h2>Add series to user series table</h2>
+
+<form class = 'submit_form' method="post" action = "/add-user-series">
+    
+    <input type="text" name="user_id" placeholder="User id"><br>
+    <input type="text" name="series_id" placeholder="Series id"><br>
+    <input type="text" name="state" placeholder="State (watched, watching, to-watch"><br>
+    <input type="submit" value ="submit">
+</form>
+
+<h2>Add to favorite series table</h2>
+<form class = 'submit_form' method="post" action = "/add-fav-series">
+    
+    <input type="text" name="user_id" placeholder="User id"><br>
+    <input type="text" name="series_id" placeholder="Series id"><br>
+    <input type="submit" value ="submit">
+</form>
+
+{% endblock %}
