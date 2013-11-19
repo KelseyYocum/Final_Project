@@ -85,6 +85,7 @@ def authenticate():
 @app.route("/")
 def index():
     series = Series.query.all()
+    #current_user = current_user
     return render_template("index.html")
 
 @app.route("/search")
@@ -101,10 +102,18 @@ def search_results():
     xml_doc = xml_doc.encode('utf-8')
     pyQ = pq(xml_doc, parser = 'xml')
 
-    series = pyQ('Series')
+    series_search_results = pyQ('Series')
+    series_list = []
+    for s in series_search_results:
+        single_series_id =(pyQ(s).find('id').text())
+        single_series = model.parse_series(single_series_id)
+        series_list.append(single_series)
+
     
-    
-    return render_template("search.html", series = series, pyQ =pyQ) # where series is xml
+    return render_template("search.html", series_list = series_list, 
+                                            search_input=search_input) 
+
+        # where series_list is a list of series in pyQuery xml
 
 
 @app.route("/series/<external_series_id>")
@@ -116,8 +125,9 @@ def display_series_info(external_series_id):
     if count == 0:
         add_series(external_series_id)
     series = DB.query(Series).filter_by(external_id = external_series_id).one()
+    banner = requests.get(series.banner).content
 
-    return render_template("series_page.html", series = series) # where series is a db object
+    return render_template("series_page.html", series = series, current_user=current_user) # where series is a db object
 
 
 @app.route("/series-forms")
@@ -133,7 +143,7 @@ def add_to_user_series_table():
     new_user_series = model.UserSeries(user_id=user_id, series_id=series_id, state=state)
     DB.add(new_user_series)
     DB.commit()
-    return redirect(url_for('series_forms'))
+    return "success!"
 
 
 @app.route("/add-fav-series", methods = ["POST"])
@@ -144,10 +154,11 @@ def add_to_favorite_series_table():
     new_fav = model.Favorite(user_id=user_id, series_id=series_id)
     DB.add(new_fav)
     DB.commit()
-    return redirect(url_for('series_forms'))
+    return "success!"
 
-
-    
+# so you need to have a this fake form (series_forms.html) made for the jQuery to work?
+# how do you get the current user printed in the header
+    # how to use current user
 
 if __name__ == "__main__":
     app.run(debug=True)

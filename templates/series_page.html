@@ -3,22 +3,55 @@
 {% block body %}
 
 <h2>{{series.title}}</h2>
+<img src="{{series.banner}}">
 <ul>
     <li>{{series.overview}}</li>
 </ul>
 
-<a id = "submit">add to fav</a>
+<button type="button" id="watched" class="btn btn-primary">Watched</button>
+<button type="button" id="watching" class="btn btn-primary">Currently Watching</button>
+<button type="button" id="to-watch" class="btn btn-primary">Want to Watch</button>
+<button type="button" id="favorite" class="btn btn-primary">Favorite</button>
+
 
 <script type="text/javascript">
 
 
-$('#submit').click(function(e) {
-    console.log('link clicked!');
-    var seriesId = {{series.id}};
-    var userId = 1;
-    $.post("/add-fav-series", {series_id:seriesId, user_id:userId});
+    $('#watched').click(function(e) {
+        console.log('link clicked!');
+        var seriesId = {{series.id}};
+        var userId = {{current_user.id}};
+        var state = 'watched';
+        $.post("/add-user-series", {series_id:seriesId, user_id:userId, state:state});
 
-});
+    });
+
+    $('#watching').click(function(e) {
+        console.log('link clicked!');
+        var seriesId = {{series.id}};
+        var userId = {{current_user.id}};
+        var state = 'watching';
+        $.post("/add-user-series", {series_id:seriesId, user_id:userId, state:state});
+
+    });
+
+    $('#to-watch').click(function(e) {
+        console.log('link clicked!');
+        var seriesId = {{series.id}};
+        var userId = {{current_user.id}};
+        var state = 'to-watch';
+        $.post("/add-user-series", {series_id:seriesId, user_id:userId, state:state});
+
+    });
+
+    $('#favorite').click(function(e) {
+        console.log('link clicked!');
+        var seriesId = {{series.id}};
+        var userId = {{current_user.id}};
+        $.post("/add-fav-series", {series_id:seriesId, user_id:userId});
+
+    });
+
 
 </script>
 {% endblock %}

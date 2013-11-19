@@ -74,7 +74,8 @@ class Series(Base):
     overview = Column(Text, nullable = True)
     genre = Column(String(64), nullable = True)
     
-    banner = Column(String(64), nullable = True)
+    banner = Column(String(64), nullable = False)
+    poster = Column(String(64), nullable = False)
     
     episodes = relationship("Episode", backref = "series")
     
@@ -227,6 +228,7 @@ Table('friendship', Base.metadata,
 
 ################## Table Functions #####################
 
+#all external ids are strings
 def parse_series(external_series_id):
     r = requests.get('http://thetvdb.com/data/series/'+ external_series_id)
     xml_doc = r.text
@@ -251,11 +253,6 @@ def parse_episode(external_series_id, season_num, ep_num):
     pyQ = pq(xml_doc, parser = "xml")
     return pyQ
 
-    r = requests.get(image_url)
-    fn = "{0}_s{1}_e{2}.{3}".format(series_id, season, episode, extension)
-    with open('images/'+fn, 'w') as f:
-        f.write(r.content)
-        series.image_path = fn
 
 
 #add series to local db from api db given an api db series id
@@ -283,16 +280,16 @@ def add_series(external_series_id):
     title = pyQ('SeriesName').text()
     overview = pyQ('Overview').text()
     genre = pyQ('Genre').text() #might want another table? Or can store a list?
-    banner = pyQ('banner').text()
+    banner = "http://thetvdb.com/banners/"+pyQ('banner').text()
+    poster = "http://thetvdb.com/banners/"+pyQ('poster').text()
 
 
     s = Series(external_id = external_id, first_aired = first_aired, 
         airs_day_of_week = airs_day_of_week, airs_time = airs_time, 
-        status = status, title = title, overview=overview, genre = genre, banner = banner)
+        status = status, title = title, overview=overview, genre = genre, banner = banner, poster= poster)
     session.add(s)
     session.commit()
     
-    store_series_image(banner, s)
 
     #add eps as well
     add_episodes(external_series_id)
@@ -320,7 +317,7 @@ def add_episodes(external_series_id):
 
             title = pyQ(e).find('EpisodeName').text()
             #overview = pyQ(e).find('Overview').text()
-            image = pyQ(e).find('filename').text()
+            image = "http://thetvdb.com/banners/"+pyQ(e).find('filename').text()
 
             series = session.query(Series).filter_by(external_id = external_series_id).one()
             series_id = series.id
@@ -335,19 +332,19 @@ def add_episodes(external_series_id):
 
 
 
-def store_series_image(img_url, series): 
-    img = requests.get('http://thetvdb.com/banners/'+img_url)
-    img = img.content
-    f = open('static/img/series'+str(series.id)+'.jpg', 'w')
-    f.write(img)
-    f.close()
+# def store_series_image(img_url, series): 
+#     img = requests.get('http://thetvdb.com/banners/'+img_url)
+#     img = img.content
+#     f = open('static/img/series'+str(series.id)+'.jpg', 'w')
+#     f.write(img)
+#     f.close()
 
-def store_episode_image(img_url, episode): 
-    img = requests.get('http://thetvdb.com/banners/'+img_url)
-    img = img.content
-    f = open('static/img/episodes/'+str(episode.series_id)+'/'+str(episode.ep_num)+'.jpg', 'w')
-    f.write(img)
-    f.close()
+# def store_episode_image(img_url, episode): 
+#     img = requests.get('http://thetvdb.com/banners/'+img_url)
+#     img = img.content
+#     f = open('static/img/episodes/'+str(episode.series_id)+'/'+str(episode.ep_num)+'.jpg', 'w')
+#     f.write(img)
+#     f.close()
 
 
 ###########################################################
@@ -368,7 +365,7 @@ def create_tables():
     u3.add_friend(u, u2)
     session.add(u3)
   
-    add_series('269578')
+    add_series('.')
     add_series('78874')
     #add_series('70327')
 
