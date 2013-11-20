@@ -99,10 +99,12 @@ def series_to_dict(series):
         "external_id" : series.external_id,
         "poster" : series.poster
     }
-# where series_list is a list of tuples containg 6 series objects each. 
+# where series_list is a list of seris objects
+# where series_tuple_list is a list of tuples containg 6 series dictionaries each. 
 # sets of six to account for bootstrap rows and columns 
 # (6, 2-column series entries per row)
-# The series objs have a external_id, poster, title
+# The series dicts each have external_id, poster and title keys
+
 def series_tuple_list(series_list):
     series_list = [series_to_dict(s) for s in series_list]
     # make it a len mod 6 length by appending zeros (so don't cut off any series)
@@ -144,7 +146,7 @@ def search_results():
   
 
     series_list=series_tuple_list(series_list)
-
+    print series_list
     
     return render_template("search.html", series_list = series_list, 
                                             search_input=search_input) 
@@ -190,7 +192,7 @@ def display_watched_shows():
     for user_series in watched_list:
         watched_series_list.append(user_series.series)
     watched_series_list = series_tuple_list(watched_series_list)
-    return render_template("my_shows.html", watched_series_list=watched_series_list)
+    return json.dumps(watched_series_list)
 
 @app.route("/my-shows/to-watch")
 def display_to_watch_shows():
@@ -200,7 +202,7 @@ def display_to_watch_shows():
     for user_series in to_watch_list:
         to_watch_series_list.append(user_series.series)
     to_watch_series_list = series_tuple_list(to_watch_series_list)
-    return render_template("my_shows.html", to_watch_series_list=to_watch_series_list)
+    return json.dumps(to_watch_series_list)
 
 
 @app.route("/my-shows/favorites")
@@ -208,10 +210,10 @@ def display_favorite_shows():
     #trying to get a list of series that the current_user is watching
     favorites_list = current_user.favorites
     fav_series_list = []
-    for fav in fav_series_list:
+    for fav in favorites_list:
         fav_series_list.append(fav.series)
     fav_series_list = series_tuple_list(fav_series_list)
-    return render_template("my_shows.html", fav_series_list=fav_series_list)
+    return json.dumps(fav_series_list)
 
 
 
