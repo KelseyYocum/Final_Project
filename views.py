@@ -228,8 +228,12 @@ def add_to_user_series_table():
     state = request.form.get("state")
 
     new_user_series = model.UserSeries(user_id=user_id, series_id=series_id, state=state)
-    DB.add(new_user_series)
-    DB.commit()
+    count = DB.query(UserSeries).filter_by(series_id = new_user_series.series_id, 
+                                        user_id=new_user_series.user_id).count()
+    if count == 0:
+        DB.add(new_user_series)
+        DB.commit()
+        print "added new user series!"
     return "success!"
 
 
@@ -239,8 +243,12 @@ def add_to_favorite_series_table():
     series_id = int(request.form.get("series_id"))
 
     new_fav = model.Favorite(user_id=user_id, series_id=series_id)
-    DB.add(new_fav)
-    DB.commit()
+    count = DB.query(model.Favorite).filter_by(series_id = new_fav.series_id, 
+                                        user_id=new_fav.user_id).count()
+    if count == 0:
+        DB.add(new_fav)
+        DB.commit()
+        print "new fav added!"
     return "success!"
 
 # so you need to have a this fake form (series_forms.html) made for the jQuery to work?
