@@ -254,6 +254,40 @@ def parse_episode(external_series_id, season_num, ep_num):
     return pyQ
 
 
+def add_episodes(external_series_id):
+    pyQ = parse_series_with_eps(external_series_id)
+    episodes = pyQ('Episode')
+
+
+    for e in episodes:
+        season_num = int(pyQ(e).find('SeasonNumber').text())
+
+        #not adding season 0 episodes because those refer to releases like interviews or making-ofs, not actual episodes
+        if season_num != 0:
+            external_id = int(pyQ(e).find('id').text())
+            ep_num = int(pyQ(e).find('EpisodeNumber').text())
+            
+            date_str=pyQ(e).find('FirstAired').text()
+            if date_str != '':
+                first_aired = datetime.strptime(date_str, '%Y-%m-%d')
+            else:
+                first_aired = None
+
+            title = pyQ(e).find('EpisodeName').text()
+            #overview = pyQ(e).find('Overview').text()
+            image = "http://thetvdb.com/banners/"+pyQ(e).find('filename').text()
+
+            series = session.query(Series).filter_by(external_id = external_series_id).one()
+            series_id = series.id
+
+            ep = Episode(external_id = external_id, ep_num = ep_num, season_num = season_num, first_aired = first_aired, title = title, image = image, series_id = series_id)
+            
+            
+            
+            session.add(ep)
+    
+    session.commit()
+
 
 #add series to local db from api db given an api db series id
 def add_series(external_series_id):
@@ -296,39 +330,7 @@ def add_series(external_series_id):
 
 
 
-def add_episodes(external_series_id):
-    pyQ = parse_series_with_eps(external_series_id)
-    episodes = pyQ('Episode')
 
-
-    for e in episodes:
-        season_num = int(pyQ(e).find('SeasonNumber').text())
-
-        #not adding season 0 episodes because those refer to releases like interviews or making-ofs, not actual episodes
-        if season_num != 0:
-            external_id = int(pyQ(e).find('id').text())
-            ep_num = int(pyQ(e).find('EpisodeNumber').text())
-            
-            date_str=pyQ(e).find('FirstAired').text()
-            if date_str != '':
-                first_aired = datetime.strptime(date_str, '%Y-%m-%d')
-            else:
-                first_aired = None
-
-            title = pyQ(e).find('EpisodeName').text()
-            #overview = pyQ(e).find('Overview').text()
-            image = "http://thetvdb.com/banners/"+pyQ(e).find('filename').text()
-
-            series = session.query(Series).filter_by(external_id = external_series_id).one()
-            series_id = series.id
-
-            ep = Episode(external_id = external_id, ep_num = ep_num, season_num = season_num, first_aired = first_aired, title = title, image = image, series_id = series_id)
-            
-            
-            
-            session.add(ep)
-    
-    session.commit()
 
 
 
@@ -365,7 +367,7 @@ def create_tables():
     u3.add_friend(u, u2)
     session.add(u3)
   
-    add_series('.')
+    add_series('269578')
     add_series('78874')
     #add_series('70327')
 

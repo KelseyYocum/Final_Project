@@ -1,10 +1,11 @@
 from flask import Flask, render_template, redirect, request, g, session, url_for, flash
-from model import session as DB, User, Series, Episode, requests, pq, add_series
+from model import session as DB, User, Series, Episode, UserSeries, requests, pq, add_series
 from flask.ext.login import LoginManager, login_required, login_user, current_user
 from flaskext.markdown import Markdown
 import config
 import forms
 import model
+import json
 
 
 
@@ -92,6 +93,26 @@ def index():
 def search_page():
     return render_template("search.html")
 
+def series_to_dict(series):
+    return {
+        "title" : series.title,
+        "external_id" : series.external_id,
+        "poster" : series.poster
+    }
+# where series_list is a list of tuples containg 6 series objects each. 
+# sets of six to account for bootstrap rows and columns 
+# (6, 2-column series entries per row)
+# The series objs have a external_id, poster, title
+def series_tuple_list(series_list):
+    series_list = [series_to_dict(s) for s in series_list]
+    # make it a len mod 6 length by appending zeros (so don't cut off any series)
+    for i in range(6-(len(series_list)%6)):
+        series_list.append(0)
+
+    series_tuple_list=zip(*[iter(series_list)]*6)
+
+    return series_tuple_list
+
 
 @app.route("/search", methods = ["POST"])
 def search_results():
@@ -107,13 +128,27 @@ def search_results():
     for s in series_search_results:
         single_series_id =(pyQ(s).find('id').text())
         single_series = model.parse_series(single_series_id)
-        series_list.append(single_series)
+
+        external_id = int(single_series('id').text())
+
+        if single_series('poster').text() != '':
+            poster = "http://thetvdb.com/banners/"+single_series('poster').text()
+        else:
+            poster = "static/img/Poster_Unavailable.jpg"
+
+        title = single_series('SeriesName').text()
+
+        series_obj = model.Series(external_id=external_id, poster=poster, title=title) 
+        series_list.append(series_obj)
+
+  
+
+    series_list=series_tuple_list(series_list)
 
     
     return render_template("search.html", series_list = series_list, 
                                             search_input=search_input) 
-
-        # where series_list is a list of series in pyQuery xml
+  
 
 
 @app.route("/series/<external_series_id>")
@@ -128,6 +163,56 @@ def display_series_info(external_series_id):
     banner = requests.get(series.banner).content
 
     return render_template("series_page.html", series = series, current_user=current_user) # where series is a db object
+
+
+
+
+@app.route("/my-shows")
+def display_my_shows():
+    return render_template("my_shows.html")
+
+@app.route("/my-shows/watching")
+def display_watching_shows():
+    #trying to get a list of series that the current_user is watching
+    watching_list = DB.query(UserSeries).filter_by(user_id=current_user.id, state="watching").all()
+    watching_series_list = []
+    for user_series in watching_list:
+        watching_series_list.append(user_series.series)
+    watching_series_list = series_tuple_list(watching_series_list)
+    return json.dumps(watching_series_list)
+
+
+@app.route("/my-shows/watched")
+def display_watched_shows():
+    #trying to get a list of series that the current_user is watching
+    watched_list = DB.query(UserSeries).filter_by(user_id=current_user.id, state="watched").all()
+    watched_series_list = []
+    for user_series in watched_list:
+        watched_series_list.append(user_series.series)
+    watched_series_list = series_tuple_list(watched_series_list)
+    return render_template("my_shows.html", watched_series_list=watched_series_list)
+
+@app.route("/my-shows/to-watch")
+def display_to_watch_shows():
+    #trying to get a list of series that the current_user is watching
+    to_watch_list = DB.query(UserSeries).filter_by(user_id=current_user.id, state="to-watch").all()
+    to_watch_series_list = []
+    for user_series in to_watch_list:
+        to_watch_series_list.append(user_series.series)
+    to_watch_series_list = series_tuple_list(to_watch_series_list)
+    return render_template("my_shows.html", to_watch_series_list=to_watch_series_list)
+
+
+@app.route("/my-shows/favorites")
+def display_favorite_shows():
+    #trying to get a list of series that the current_user is watching
+    favorites_list = current_user.favorites
+    fav_series_list = []
+    for fav in fav_series_list:
+        fav_series_list.append(fav.series)
+    fav_series_list = series_tuple_list(fav_series_list)
+    return render_template("my_shows.html", fav_series_list=fav_series_list)
+
 
 
 @app.route("/series-forms")

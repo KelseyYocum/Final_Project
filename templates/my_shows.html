@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h1>My Shows</h1>
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-pills">
+            <li id="current" class="active"><a>Currently Watching</a></li>
+            <li><a href="#">Watched</a></li>
+            <li><a href="#">To-Watch</a></li>
+            <li><a href="#">Favorites</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="series-posters">
+    {% for row in watching_series_list %}
+        <div class="row poster-row">
+            {% for s in row %}
+                {% if s != 0 %}
+                    <div class="col-md-2">
+                        <img class="img-responsive series-poster" alt="Responsive image" src="{{s.poster}}">
+                        <a class="series-link" href = "/series/{{s.external_id}}">{{s.title}}</a>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+            
+    {% endfor %}
+
+</div>
+
+<script type="text/javascript">
+$('#current').click(function() {
+    $.get('/my-shows/watching', function(responseFromServer) {
+        var rows = JSON.parse(responseFromServer);
+        for (var i = 0; i < rows.length; i++) {
+            // Make a row
+            var rowDiv = $('<div class="row poster-row">');
+            for (var j=0; j<rows[i].length;j++) {
+                var series = rows[i][j];
+                console.log(series);
+                if (series != 0) {
+                    // Make a column
+                    var colDiv = $('<div class="col-md-2">');
+                    var img = $('<img class="img-responsive series-poster" alt="Responsive image" src="'+ series.poster +'">')
+                    var link = $('<a class="series-link" href = "/series/'+ series.external_id +'">' + series.title + '</a>');
+                    colDiv.append(img);
+                    colDiv.append(link);
+                    rowDiv.append(colDiv);
+                    console.log(rowDiv)
+                }
+                $('.series-posters').append(rowDiv);
+            }
+        };
+    });
+});
+</script>
+
+{% endblock %}
