@@ -76,6 +76,7 @@ class Series(Base):
     
     banner = Column(String(64), nullable = False)
     poster = Column(String(64), nullable = False)
+    fanart = Column(String(64), nullable = False)
     
     episodes = relationship("Episode", backref = "series")
     
@@ -316,11 +317,21 @@ def add_series(external_series_id):
     genre = pyQ('Genre').text() #might want another table? Or can store a list?
     banner = "http://thetvdb.com/banners/"+pyQ('banner').text()
     poster = "http://thetvdb.com/banners/"+pyQ('poster').text()
+    fanart = "http://thetvdb.com/banners/"+pyQ('fanart').text()
 
 
-    s = Series(external_id = external_id, first_aired = first_aired, 
-        airs_day_of_week = airs_day_of_week, airs_time = airs_time, 
-        status = status, title = title, overview=overview, genre = genre, banner = banner, poster= poster)
+    s = Series(external_id = external_id, 
+                first_aired = first_aired, 
+                airs_day_of_week = airs_day_of_week, 
+                airs_time = airs_time, 
+                status = status, 
+                title = title, 
+                overview=overview, 
+                genre = genre, 
+                banner = banner, 
+                poster= poster, 
+                fanart = fanart)
+    
     session.add(s)
     session.commit()
     

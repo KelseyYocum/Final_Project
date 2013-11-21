@@ -163,9 +163,21 @@ def display_series_info(external_series_id):
         add_series(external_series_id)
     series = DB.query(Series).filter_by(external_id = external_series_id).one()
     banner = requests.get(series.banner).content
-    state = DB.query(UserSeries).filter_by(series_id=series.id, user_id=current_user.id).one().state
 
-    return render_template("series_page.html", state=state, series = series, current_user=current_user) # where series is a db object
+    count2 = DB.query(UserSeries).filter_by(
+                                    series_id=series.id, 
+                                    user_id=current_user.id).count()
+
+    if count2 != 0:
+        state = DB.query(UserSeries).filter_by(
+                                        series_id=series.id, 
+                                        user_id=current_user.id).one().state
+    else:
+        state = '';
+
+    return render_template("series_page.html", state=state, 
+                                            series = series, 
+                                            current_user=current_user) # where series is a db object
 
 
 

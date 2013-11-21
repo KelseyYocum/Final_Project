@@ -21,7 +21,7 @@
             {% for s in row %}
                 {% if s != 0 %}
                     <div class="col-md-2">
-                        <img class="img-responsive series-poster" alt="Responsive image" src="{{s.poster}}">
+                        <img class="img-responsive series-poster"  src="{{s.poster}}">
                         <a class="series-link" href = "/series/{{s.external_id}}">{{s.title}}</a>
                     </div>
                 {% endif %}

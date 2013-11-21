@@ -3,29 +3,39 @@
 {% block body %}
 
 <h2>{{series.title}}</h2>
-<img src="{{series.banner}}">
-<ul>
-    <li>{{series.overview}}</li>
-</ul>
+<div class="row">
+    <div class="col-md-6 series-header">
+        <p>test</test>
+        <img class="img-responsive series-fanart" src="{{series.fanart}}">
+
+    </div>
 
 
-<div class="radio">
-  <label>
-    <input type="radio" name="optionsRadios" id="watching" value="option1">
-    Currently Watching
-  </label>
 </div>
-<div class="radio">
-  <label>
-    <input type="radio" name="optionsRadios" id="watched" value="option2">
-    Watched
-  </label>
-</div>
-<div class="radio">
-  <label>
-    <input type="radio"  name="optionsRadios" id="to-watch" value="option3">
-    Want to Watch
-  </label>
+
+
+{{series.overview}}
+
+
+<div class="row">
+    <div class="radio">
+      <label>
+        <input type="radio" name="optionsRadios" id="watching" value="option1">
+        Currently Watching
+      </label>
+    </div>
+    <div class="radio">
+      <label>
+        <input type="radio" name="optionsRadios" id="watched" value="option2">
+        Watched
+      </label>
+    </div>
+    <div class="radio">
+      <label>
+        <input type="radio"  name="optionsRadios" id="to-watch" value="option3">
+        Want to Watch
+      </label>
+    </div>
 </div>
 
 <button type="button" id="favorite" class="btn btn-primary">Favorite</button>

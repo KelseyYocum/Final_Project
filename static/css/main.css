@@ -2,6 +2,6 @@
     margin-top: 15px
 }
 
-.series-link{
-    
+.series-header{
+     background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#1a82f7), to(#2F2727));
 }
