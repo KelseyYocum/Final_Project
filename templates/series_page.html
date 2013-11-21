@@ -8,13 +8,42 @@
     <li>{{series.overview}}</li>
 </ul>
 
-<button type="button" id="watched" class="btn btn-primary">Watched</button>
-<button type="button" id="watching" class="btn btn-primary">Currently Watching</button>
-<button type="button" id="to-watch" class="btn btn-primary">Want to Watch</button>
+
+<div class="radio">
+  <label>
+    <input type="radio" name="optionsRadios" id="watching" value="option1">
+    Currently Watching
+  </label>
+</div>
+<div class="radio">
+  <label>
+    <input type="radio" name="optionsRadios" id="watched" value="option2">
+    Watched
+  </label>
+</div>
+<div class="radio">
+  <label>
+    <input type="radio"  name="optionsRadios" id="to-watch" value="option3">
+    Want to Watch
+  </label>
+</div>
+
 <button type="button" id="favorite" class="btn btn-primary">Favorite</button>
 
 
 <script type="text/javascript">
+
+    if ("{{state}}" == "watching") {
+        $("#watching").attr('checked','checked');
+    };
+
+    if ("{{state}}" == "watched") {
+        $("#watched").attr('checked','checked');
+    };
+
+    if ("{{state}}" == "to-watch") {
+        $("#to-watch").attr('checked','checked');
+    };
 
 
     $('#watched').click(function(e) {

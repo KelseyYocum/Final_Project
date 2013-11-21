@@ -163,8 +163,9 @@ def display_series_info(external_series_id):
         add_series(external_series_id)
     series = DB.query(Series).filter_by(external_id = external_series_id).one()
     banner = requests.get(series.banner).content
+    state = DB.query(UserSeries).filter_by(series_id=series.id, user_id=current_user.id).one().state
 
-    return render_template("series_page.html", series = series, current_user=current_user) # where series is a db object
+    return render_template("series_page.html", state=state, series = series, current_user=current_user) # where series is a db object
 
 
 
@@ -228,28 +229,48 @@ def add_to_user_series_table():
     state = request.form.get("state")
 
     new_user_series = model.UserSeries(user_id=user_id, series_id=series_id, state=state)
-    count = DB.query(UserSeries).filter_by(series_id = new_user_series.series_id, 
-                                        user_id=new_user_series.user_id).count()
+    count = DB.query(UserSeries).filter_by(series_id=series_id, 
+                                        user_id=user_id).count()
     if count == 0:
         DB.add(new_user_series)
         DB.commit()
         print "added new user series!"
+    else: 
+        db_duplicate = DB.query(UserSeries).filter_by(series_id=series_id, 
+                                                        user_id=user_id).one()
+        if db_duplicate.state != state:
+            db_duplicate.state = state
+            DB.add(db_duplicate)
+            DB.commit()
+            print "Changed to a new state!"
     return "success!"
 
 
 @app.route("/add-fav-series", methods = ["POST"])
-def add_to_favorite_series_table():
+def add_to_favorites():
     user_id = int(request.form.get("user_id"))
     series_id = int(request.form.get("series_id"))
 
     new_fav = model.Favorite(user_id=user_id, series_id=series_id)
-    count = DB.query(model.Favorite).filter_by(series_id = new_fav.series_id, 
-                                        user_id=new_fav.user_id).count()
+    count = DB.query(model.Favorite).filter_by(series_id=series_id, 
+                                        user_id=user_id).count()
     if count == 0:
         DB.add(new_fav)
         DB.commit()
         print "new fav added!"
     return "success!"
+
+@app.route("/remove-fav-series", methods = ["POST"])
+def remove_from_favorites():
+    user_id = int(request.form.get("user_id"))
+    series_id = int(request.form.get("series_id"))
+
+    fav = DB.query(model.Favorite).filter_by(series_id = series_id, 
+                                        user_id=user_id).one()
+    DB.delete(fav)
+    DB.commit()
+
+    return "Deleted fav!"
 
 # so you need to have a this fake form (series_forms.html) made for the jQuery to work?
 # how do you get the current user printed in the header
