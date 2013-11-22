@@ -2,57 +2,119 @@
 
 {% block body %}
 
-<h2>{{series.title}}</h2>
+
 <div class="row">
-    <div class="col-md-6 series-header">
-        <p>test</test>
+    <div class="col-md-8">
         <img class="img-responsive series-fanart" src="{{series.fanart}}">
+    </div>
+     <div class ="col-md-4">
+        <h2 class='series-title'>{{series.title}}</h2>
+        <p class="series-overview">{{series.overview}}</p>
 
     </div>
 
+</div>
+
+<hr>
+
+<div class = "row">
+    
+     <div class="user-buttons col-md-6">
+        <div class="btn-group" data-toggle="buttons">
+          <label class="btn btn-default" id="watching">
+            <input type="radio"  value="option1">
+            Currently Watching
+          </label>
+          <label class="btn btn-default" id="watched">
+            <input type="radio"  value="option2">
+            Watched
+          </label>
+          <label class="btn btn-default">
+            <input type="radio"  id="to-watch" value="option3">
+            Want to Watch
+          </label>
+          <button type="button" class="btn btn-default" id="favorite">Favorite</button>
+        </div>
+
+        
+    
+    </div>
+</div>
+
+
+    </div>
+
+    <div class="season-buttons col-md-6">
+        <div class="btn-toolbar" role="toolbar" style="margin: 0">
+            <div class="btn-group">
+                <button type="button" class="btn btn-default">1</button>
+            </div>
+        </div>
+    </div>
 
 </div>
 
 
-{{series.overview}}
+<div class="row col-md-12">
+    <div class="col-md-6"></div>
+    <div class="episodes-table col-md-6">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Episode Title</th>
+                    <th>Watched</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Pilot</td>
+                    <td>
+                        <button type="button" class="btn btn-default btn-sm">
+                            <span class="glyphicon glyphicon-ok"></span>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Blood Moon</td>
+                    <td><span class="glyphicon glyphicon-ok"></span></td>
+                </tr>
+            </tbody>
+        </table>
 
+    </div>
 
-<div class="row">
-    <div class="radio">
-      <label>
-        <input type="radio" name="optionsRadios" id="watching" value="option1">
-        Currently Watching
-      </label>
-    </div>
-    <div class="radio">
-      <label>
-        <input type="radio" name="optionsRadios" id="watched" value="option2">
-        Watched
-      </label>
-    </div>
-    <div class="radio">
-      <label>
-        <input type="radio"  name="optionsRadios" id="to-watch" value="option3">
-        Want to Watch
-      </label>
-    </div>
 </div>
 
-<button type="button" id="favorite" class="btn btn-primary">Favorite</button>
+
+<!-- <div class="btn-group" data-toggle="buttons" style="margin: 9px 0 5px;">
+    <button type="radio" class="btn btn-default" id="watching option1">Currently Watching</button>
+    <button type="radio" class="btn btn-default" id="watched option2">Watched</button>
+    <button type="radio" class="btn btn-default" id="to-watch option3">Want to Watch</button>
+    <button type="button" class="btn btn-default" id="favorite">Favorite</button>
+</div> -->
+
+
+
 
 
 <script type="text/javascript">
 
+    $('.btn-group').button()
+
     if ("{{state}}" == "watching") {
-        $("#watching").attr('checked','checked');
+        $("#watching").button('toggle');
+        console.log('test')
     };
 
     if ("{{state}}" == "watched") {
-        $("#watched").attr('checked','checked');
+       $("#watched").button('toggle');
     };
 
     if ("{{state}}" == "to-watch") {
-        $("#to-watch").attr('checked','checked');
+        $("#to-watch > input").prop('checked',true);
     };
 
 

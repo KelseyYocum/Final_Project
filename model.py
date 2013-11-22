@@ -112,10 +112,21 @@ class UserSeries(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
     series_id = Column(Integer, ForeignKey('series.id')) #local series id
     state = Column(String(65), nullable = False) #enum can be set to "watched", "to-watch", "watching"
-    #state = Column(Enum('watched', 'to-watch', 'watching', name='series_state'), nullable=False)
+    
 
     user = relationship("User", backref = "user_series")
     series = relationship("Series", backref = "user_series")
+
+
+class WatchedEpisodes(Base):
+    __tablename__ = "watched_episodes"
+    id = Column(Integer, primary_key = True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    episode_id = Column(Integer, ForeignKey('episodes.id')) #local series id
+    
+
+    user = relationship("User", backref = "watched_episodes")
+    episode = relationship("Episode", backref = "watched_episodes")
 
 
 
