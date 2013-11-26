@@ -17,7 +17,7 @@
 
 <hr>
 
-<div class = "row">
+<div class = "row"> 
     
      <div class="user-buttons col-md-6">
         <div class="btn-group" data-toggle="buttons">
@@ -39,10 +39,14 @@
 
     <div class="season-buttons col-md-6">
         <div class="btn-group" data-toggle="buttons">
-          <label class="btn btn-default" id="1">
-            <input type="radio"  value="option1">
-            1
-          </label>
+            {% for i in range(season_dict|length) %}
+
+            <label class="btn btn-default season-button" id="season{{i+1}}">
+                <input type="radio"  value="option{{i+1}}">
+                {{i+1}}
+            </label>
+
+            {% endfor %}
         </div>
          
     </div>
@@ -55,6 +59,11 @@
 <div class="row col-md-12">
     <div class="col-md-6"></div>
     <div class="episodes-table col-md-6">
+  
+        <label id="season-check">
+          <input type="checkbox"> Check season as watched
+        </label>
+
         <table class="table table-hover">
             <thead>
                 <tr>
@@ -63,22 +72,31 @@
                     <th>Watched</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>Pilot</td>
-                    <td>
-                        <button type="button" class="btn btn-default btn-sm">
-                            <span class="glyphicon glyphicon-unchecked"></span>
-                        </button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>2</td>
-                    <td>Blood Moon</td>
-                    <td><span class="glyphicon glyphicon-ok"></span></td>
-                </tr>
-            </tbody>
+            
+              
+                {% for i in range (season_dict|length) %}
+                    <tbody id = "season{{i+1}}-table">
+                    {% for e in season_dict[i+1] %}
+                    
+                        <tr>
+
+                            <td>{{e.ep_num}}</td>
+                            <td>{{e.title}}</td>
+                            <td>
+                                {% if e.id in watched_ep_ids %}
+                                    <p class="ep-watched">watched!</p>
+                                {% else %}
+                                <button type="button" id = "{{e.id}}" class="btn btn-warning watched-button btn-sm">
+                                    <span class="glyphicon glyphicon-ok"></span>
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                   
+                    {% endfor %}
+                    </tbody>
+                {% endfor %}
+             
         </table>
 
     </div>
@@ -88,9 +106,16 @@
 
 
 
-
 <script type="text/javascript">
-    var my_episodes = {{ episodes | safe }};
+    
+    function start(){
+        $("#seson1").click();
+        console.log('start click')
+    }
+    
+    $(document).ready(start);
+
+
     $('.btn-group').button()
 
     if ("{{state}}" == "watching") {
@@ -109,7 +134,7 @@
     $('#watched').click(update_show_state_to_watched);
     $('#to-watch').click(update_show_state_want_to_watch);
     
-     $('#favorite').click(function(e) {
+    $('#favorite').click(function(e) {
         console.log('link clicked!');
         var seriesId = {{series.id}};
         var userId = {{current_user.id}};
@@ -139,8 +164,24 @@
         change_show_state("to-watch");
     }
 
+    $('.season-button').click(show_season_episodes);
 
+    function show_season_episodes(evt){
+        $("tbody").hide();
+        console.log("#"+this.id+"-table");
+        $("#"+this.id+"-table").show();
+    }
 
+    $('.watched-button').click(function(e) {
+        console.log('watched button clicked!');
+        var episodeId = this.id;
+        console.log(episodeId);
+        var userId = {{current_user.id}};
+        $.post("/add-watched-episode", {episode_id:episodeId, user_id:userId});
+
+    });
+
+    
    
 
 

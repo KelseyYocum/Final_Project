@@ -19,120 +19,65 @@
 
 <script type="text/javascript">
      
-    $('#watching').click(myShows);
-    $(document).ready(myShows);
+    $('#watching').click(show_currently_watching);
+    $('#watched').click(show_watched);
+    $('#to-watch').click(show_to_watch);
+    $('#favorites').click(show_favorites);
+    
+    function start() {
+        $("#watching").click();
+    }
+    $(document).ready(start);
 
-    function myShows() {
+    function display_shows(rows) {
+        for (var i = 0; i < rows.length; i++) {
+            // Make a row
+            var rowDiv = $('<div class="row poster-row">');
+            for (var j=0; j<rows[i].length;j++) {
+                var series = rows[i][j];
+                console.log(series);
+                if (series != 0) {
+                    // Make a column
+                    var colDiv = $('<div class="col-md-2">');
+                    var img = $('<img class="img-responsive series-poster" alt="Responsive image" src="'+ series.poster +'">')
+                    var link = $('<a class="series-link" href = "/series/'+ series.external_id +'">' + series.title + '</a>');
+                    colDiv.append(img);
+                    colDiv.append(link);
+                    rowDiv.append(colDiv);
+                    console.log(rowDiv)
+                }
+                $('.series-posters').append(rowDiv);
+            }
+        };
+    }
+
+    function get_show_list(url, target_pill) {
         $('.series-posters').empty();
         $('.nav-pills li').removeClass("active");
-        $('#watching').addClass("active");
-        $.get('/my-shows/watching', function(responseFromServer) {
+        $(target_pill).addClass("active");
+
+        $.get(url, function(responseFromServer) {
             var rows = JSON.parse(responseFromServer);
-            for (var i = 0; i < rows.length; i++) {
-                // Make a row
-                var rowDiv = $('<div class="row poster-row">');
-                for (var j=0; j<rows[i].length;j++) {
-                    var series = rows[i][j];
-                    console.log(series);
-                    if (series != 0) {
-                        // Make a column
-                        var colDiv = $('<div class="col-md-2">');
-                        var img = $('<img class="img-responsive series-poster" alt="Responsive image" src="'+ series.poster +'">')
-                        var link = $('<a class="series-link" href = "/series/'+ series.external_id +'">' + series.title + '</a>');
-                        colDiv.append(img);
-                        colDiv.append(link);
-                        rowDiv.append(colDiv);
-                        console.log(rowDiv)
-                    }
-                    $('.series-posters').append(rowDiv);
-                }
-            };
+            display_shows(rows);   
         });
     }
 
-    $('#watched').click(function() {
-        $('.series-posters').empty();
-        $('.nav-pills li').removeClass("active");
-        $('#watched').addClass("active");
-        $.get('/my-shows/watched', function(responseFromServer) {
-            var rows = JSON.parse(responseFromServer);
-            for (var i = 0; i < rows.length; i++) {
-                // Make a row
-                var rowDiv = $('<div class="row poster-row">');
-                for (var j=0; j<rows[i].length;j++) {
-                    var series = rows[i][j];
-                    console.log(series);
-                    if (series != 0) {
-                        // Make a column
-                        var colDiv = $('<div class="col-md-2">');
-                        var img = $('<img class="img-responsive series-poster" alt="Responsive image" src="'+ series.poster +'">')
-                        var link = $('<a class="series-link" href = "/series/'+ series.external_id +'">' + series.title + '</a>');
-                        colDiv.append(img);
-                        colDiv.append(link);
-                        rowDiv.append(colDiv);
-                        console.log(rowDiv)
-                    }
-                    $('.series-posters').append(rowDiv);
-                }
-            };
-        });
-    });
+    function show_currently_watching(evt) {
+        get_show_list("/my-shows/watching", this);
+    }
 
-    $('#to-watch').click(function() {
-        $('.series-posters').empty();
-        $('.nav-pills li').removeClass("active");
-        $('#to-watch').addClass("active");
-        $.get('/my-shows/to-watch', function(responseFromServer) {
-            var rows = JSON.parse(responseFromServer);
-            for (var i = 0; i < rows.length; i++) {
-                // Make a row
-                var rowDiv = $('<div class="row poster-row">');
-                for (var j=0; j<rows[i].length;j++) {
-                    var series = rows[i][j];
-                    console.log(series);
-                    if (series != 0) {
-                        // Make a column
-                        var colDiv = $('<div class="col-md-2">');
-                        var img = $('<img class="img-responsive series-poster" alt="Responsive image" src="'+ series.poster +'">')
-                        var link = $('<a class="series-link" href = "/series/'+ series.external_id +'">' + series.title + '</a>');
-                        colDiv.append(img);
-                        colDiv.append(link);
-                        rowDiv.append(colDiv);
-                        console.log(rowDiv)
-                    }
-                    $('.series-posters').append(rowDiv);
-                }
-            };
-        });
-    });
+    function show_watched(evt) {
+        get_show_list("/my-shows/watched", this);
+    }
 
-    $('#favorites').click(function() {
-        $('.series-posters').empty();
-        $('.nav-pills li').removeClass("active");
-        $('#favorites').addClass("active");
-        $.get('/my-shows/favorites', function(responseFromServer) {
-            var rows = JSON.parse(responseFromServer);
-            for (var i = 0; i < rows.length; i++) {
-                // Make a row
-                var rowDiv = $('<div class="row poster-row">');
-                for (var j=0; j<rows[i].length;j++) {
-                    var series = rows[i][j];
-                    console.log(series);
-                    if (series != 0) {
-                        // Make a column
-                        var colDiv = $('<div class="col-md-2">');
-                        var img = $('<img class="img-responsive series-poster" alt="Responsive image" src="'+ series.poster +'">')
-                        var link = $('<a class="series-link" href = "/series/'+ series.external_id +'">' + series.title + '</a>');
-                        colDiv.append(img);
-                        colDiv.append(link);
-                        rowDiv.append(colDiv);
-                        console.log(rowDiv)
-                    }
-                    $('.series-posters').append(rowDiv);
-                }
-            };
-        });
-    });
+    function show_to_watch(evt) {
+        get_show_list("/my-shows/to-watch",this);
+    }
+
+    function show_favorites(evt) {
+        get_show_list("/my-shows/favorites", this);
+    }
+
 
 
 </script>

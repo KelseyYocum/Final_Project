@@ -118,7 +118,7 @@ class UserSeries(Base):
     series = relationship("Series", backref = "user_series")
 
 
-class WatchedEpisodes(Base):
+class WatchedEpisode(Base):
     __tablename__ = "watched_episodes"
     id = Column(Integer, primary_key = True)
     user_id = Column(Integer, ForeignKey('users.id'))

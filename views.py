@@ -6,6 +6,7 @@ import config
 import forms
 import model
 import json
+import operator
 
 
 
@@ -99,6 +100,8 @@ def series_to_dict(series):
         "external_id" : series.external_id,
         "poster" : series.poster
     }
+
+
 # where series_list is a list of seris objects
 # where series_tuple_list is a list of tuples containg 6 series dictionaries each. 
 # sets of six to account for bootstrap rows and columns 
@@ -152,6 +155,11 @@ def search_results():
                                             search_input=search_input) 
   
 
+# need a def that turns a tv series into a list of dictionaries
+#eps =session.query(Episode).filter_by(series_id=4).order_by(Episode.season_num).all()
+#seasons.keys().sort()
+#dictionary of seasons {1:[ep, ep, ep], 2:[ep,ep,ep]}
+#{1:{1:ep, 2:ep, 3:ep}, 2:{1:ep, 2:ep, 3:ep}}
 
 @app.route("/series/<external_series_id>")
 def display_series_info(external_series_id):
@@ -175,9 +183,41 @@ def display_series_info(external_series_id):
     else:
         state = '';
 
+
+    
+    # all episodes of series organized by season
+    #{1:[ep, ep, ep], 2:[ep,ep,ep], ...}
+
+    eps_list = DB.query(Episode).filter_by(series_id=series.id).order_by(Episode.season_num).all()
+    season_dict = {}
+    watched_ep_ids =[]
+
+    for e in eps_list:
+        if season_dict.get(e.season_num) == None:
+            season_dict[e.season_num]=[e]
+        else:
+            season_dict[e.season_num].append(e)
+
+        count3=DB.query(model.WatchedEpisode).filter_by(episode_id = e.id).count()
+        if count3 != 0:
+            watched_ep_ids.append(e.id)
+
+    # in each episode list per season key, sort by episode number
+    for key, val in season_dict.iteritems():
+        val.sort(key=operator.attrgetter("ep_num"))
+
+
+
+
+
     return render_template("series_page.html", state=state, 
                                             series = series, 
-                                            current_user=current_user) # where series is a db object
+                                            current_user=current_user,
+                                            season_dict=season_dict,
+                                            watched_ep_ids=watched_ep_ids
+                                
+                                            ) # where series is a db object, 
+                                            # season_dict keys are season numbers, values are lists of ep objs
 
 
 
@@ -284,9 +324,21 @@ def remove_from_favorites():
 
     return "Deleted fav!"
 
-# so you need to have a this fake form (series_forms.html) made for the jQuery to work?
-# how do you get the current user printed in the header
-    # how to use current user
+@app.route("/add-watched-episode", methods = ["POST"])
+def add_to_watched_episodes():
+    user_id = int(request.form.get("user_id"))
+    episode_id = int(request.form.get("episode_id"))
+   
+
+    new_watched_episode = model.WatchedEpisode(user_id=user_id, episode_id=episode_id)
+    DB.add(new_watched_episode)
+    DB.commit()
+
+    return "success!"
+
+
+#
+
 
 if __name__ == "__main__":
     app.run(debug=True)
