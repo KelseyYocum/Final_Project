@@ -122,7 +122,7 @@ class WatchedEpisode(Base):
     __tablename__ = "watched_episodes"
     id = Column(Integer, primary_key = True)
     user_id = Column(Integer, ForeignKey('users.id'))
-    episode_id = Column(Integer, ForeignKey('episodes.id')) #local series id
+    episode_id = Column(Integer, ForeignKey('episodes.id')) 
     
 
     user = relationship("User", backref = "watched_episodes")
@@ -156,14 +156,14 @@ class Rating(Base):
     id = Column(Integer, primary_key = True)
 
     user_id = Column(Integer, ForeignKey('users.id'))
-    ep_id = Column(Integer, ForeignKey('episodes.id')) #local ep id
+    series_id = Column(Integer, ForeignKey('series.id')) #local ep id
     value = Column(Integer, nullable = False)
 
     user = relationship("User", backref = "ratings")
-    episode = relationship("Episode", backref = "ratings")
+    series = relationship("Series", backref = "ratings")
 
     # user.ratings -->list of ratings objs
-    # currently set up for rating only episodes, not series or seasons
+    # currently set up for rating only series, not episodes or seasons
 
 
 class Review(Base):
@@ -402,8 +402,7 @@ def create_tables():
 
    
 
-    rating = Rating(user_id = 1, ep_id = 2, value = 5)
-    session.add(rating)
+    
 
     review = Review(user_id = 1, ep_id = 1, body = "commodo libero eget nisl rutrum eleifend. Nulla dapibus euismod pulvinar. Nulla nec turpis vehicula odio malesuada commodo. Suspendisse potenti. Nullam sagittis, est in tempus fermentum, odio neque volutpat erat, et congue nisi leo vel dolor. Aliquam semper porta risus, id ullamcorper est commodo eu. Sed scelerisque volutpat lacus, sit amet posuere sapien aliquam a. Donec consectetur turpis rutrum, porta lectus id, rutrum felis.")
     session.add(review)

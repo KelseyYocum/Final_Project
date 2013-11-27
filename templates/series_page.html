@@ -33,6 +33,16 @@
 
      <div class ="col-md-4">
         <h2 class='series-title'>{{series.title}}</h2>
+
+        <!-- Rating -->
+        <div class="rating">
+            <span class="star" id="5">★</span>
+            <span class="star" id="4">★</span>
+            <span class="star" id="3">★</span>
+            <span class="star" id="2">★</span>
+            <span class="star" id="1">★</span>
+        </div>
+
         <p class="series-overview">{{series.overview}}</p>
 
 
@@ -149,19 +159,25 @@
 <hr>
 
 
-
+<!-- end of HTML -->
 
 <script type="text/javascript">
-    
+    rating = {{rating}};
+
     function start(){
         $("#season1").click();
         $("#ep-1-1").show();
 
-        console.log('start click')
+        for (var i = 1; i <= rating; i++) {
+            $("#"+i).toggleClass('clicked');
+        };
+
+            console.log('start click')
     }
     
     $(document).ready(start);
 
+    // watched and favorite buttons
 
     $('.btn-group').button()
 
@@ -211,6 +227,8 @@
         change_show_state("to-watch");
     }
 
+    // Episode tables by season
+
     $('.season-button').click(show_season_episodes);
 
     function show_season_episodes(evt){
@@ -218,6 +236,8 @@
         console.log("#"+this.id+"-table");
         $("#"+this.id+"-table").show();
     }
+
+    // Watched episode button
 
     $('.watch-button').click(function(e) {
         console.log('watch button clicked!');
@@ -235,7 +255,8 @@
 
         });
 
-    // $('.episode-row').click(show_episode_info);
+    // Episode info
+
     $('.episode-row').hover(show_episode_info);
 
     // var all_seasons = {{season_dict | safe}};
@@ -251,8 +272,30 @@
 
     }
     
+    //Star ratings
 
+    $('.star').click(update_rating);
+
+    function update_rating (evt) {
+
+        $('.star').removeClass("clicked");
+
+        /* grab ids of all stars before it and add class to those too */
+        var clickedStar = parseInt($(this).attr("id"));
+        var seriesId = {{series.id}}
+        var userId = {{current_user.id}}
+
+        for (var i = 1; i <= clickedStar; i++) {
+            $("#"+i).toggleClass('clicked');
+        };
+        
     
+        $.post("/series/rating", {value:clickedStar, user_id:userId, series_id:seriesId}, function(response){
+            $('.rating_display').html(response);
+        });
+    }
+
+
    
 
 

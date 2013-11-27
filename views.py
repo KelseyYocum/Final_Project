@@ -206,6 +206,13 @@ def display_series_info(external_series_id):
         val.sort(key=operator.attrgetter("ep_num"))
 
 
+    rating_count = DB.query(model.Rating).filter_by(series_id=series.id, user_id=current_user.id).count()
+    if rating_count != 0:
+        rating_value = DB.query(model.Rating).filter_by(series_id=series.id, user_id=current_user.id).one().value
+    else:
+        rating_value = 0
+
+
     percent_watched = round(float((len(watched_ep_ids))/float(len(eps_list)))*100, 1)
  
 
@@ -215,6 +222,7 @@ def display_series_info(external_series_id):
                                             current_user=current_user,
                                             season_dict=season_dict,
                                             watched_ep_ids=watched_ep_ids,
+                                            rating=rating_value,
                                             percent_watched=percent_watched
                                 
                                             ) # where series is a db object, 
@@ -355,6 +363,28 @@ def update_watched_episodes():
     return "success!"
 
 
+@app.route("/series/rating", methods = ["POST"])
+def update_series_rating():
+    value = request.form.get("value")
+    series_id = request.form.get("series_id")
+    user_id = request.form.get("user_id")
+
+    count = DB.query(model.Rating).filter_by(user_id=user_id, series_id=series_id).count()
+    user_series_count = DB.query(UserSeries).filter_by(user_id=user_id, series_id=series_id).count()
+
+    if count == 0:
+        #can only rate if you've added it to one of your watched lists
+        if user_series_count != 0:
+            new_rating = model.Rating(series_id=series_id, user_id=user_id, value=value)
+            DB.add(new_rating)
+            DB.commit()
+    else:
+        rating = DB.query(model.Rating).filter_by(user_id=user_id, series_id=series_id).one()
+        rating.value = value
+        DB.add(rating)
+        DB.commit()
+
+    return "successfully updated rating!"
 
 
 

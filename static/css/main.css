@@ -12,6 +12,7 @@
 
 .series-title{
     margin-top:0;
+    margin-bottom: 0;
 }
 
 .episode-image{
@@ -31,3 +32,44 @@
     margin-bottom: 10px;
 }
 
+/*
+    Ratings Stars
+    (with as little code as possible)
+*/
+.star{
+  color:#adadad;
+}
+
+.rating {
+  unicode-bidi: bidi-override;
+  direction: rtl;
+  text-align: left;
+  font-size:20px;
+  margin-bottom: 15px;
+  
+
+}
+
+.rating > span {
+  display: inline-block;
+  position: relative;
+
+}
+
+.rating > span:hover:before,
+.rating > span:hover ~ span:before {
+   content: "\2605";
+   position: absolute;
+   left: 0; 
+   color: #f0ad4e;
+}
+
+
+.clicked:before,
+.clicked ~ .clicked:before
+{
+   content: "\2605";
+   position: absolute;
+   left: 0; 
+   color: #f0ad4e;
+}
