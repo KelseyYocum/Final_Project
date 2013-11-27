@@ -324,20 +324,37 @@ def remove_from_favorites():
 
     return "Deleted fav!"
 
-@app.route("/add-watched-episode", methods = ["POST"])
-def add_to_watched_episodes():
+@app.route("/update-watched-episode", methods = ["POST"])
+def update_watched_episodes():
     user_id = int(request.form.get("user_id"))
     episode_id = int(request.form.get("episode_id"))
+    status = request.formget("status")
+    watched_episode = model.WatchedEpisode(user_id=user_id, episode_id=episode_id)
    
-
-    new_watched_episode = model.WatchedEpisode(user_id=user_id, episode_id=episode_id)
-    DB.add(new_watched_episode)
-    DB.commit()
+    if status == True:
+        DB.add(watched_episode)
+        DB.commit()
+    else:
+        watched_episode=DB.query(model.WatchedEpisode).filter_by(user_id=user_id, episode_id=episode_id).one()
+        DB.delete(watched_episode)
+        DB.commit()
 
     return "success!"
 
 
-#
+# @app.route("/remove-watched-episode", methods = ["POST"])
+# def remove_from_watched_episodes():
+#     user_id = int(request.form.get("user_id"))
+#     episode_id = int(request.form.get("episode_id"))
+   
+
+#     watched_episode = model.WatchedEpisode(user_id=user_id, episode_id=episode_id)
+#     DB.delete(watched_episode)
+#     DB.commit()
+
+#     return "success!"
+
+
 
 
 if __name__ == "__main__":

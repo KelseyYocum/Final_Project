@@ -1,8 +1,30 @@
 {% extends "base.html" %}
 
+{% macro show_episode_info(ep) %}
+<div class="episode" id="ep-{{ep.season_num}}-{{ep.ep_num}}" style="display: none">
+    <div class="row">
+        <br>
+        
+        <div class="col-md-6">
+            <h4 class="ep-title">{{ep.title}}</h4>
+            <p>{{ep.overview}}</p>
+
+           
+        </div>
+        <div class="col-md-6">
+             <img class="img-responsive episode-image" src="{{ep.image}}">
+    
+        </div>
+    </div>
+  
+    
+    
+</div>
+{% endmacro %}
+
 {% block body %}
 
-
+<!-- series header -->
 <div class="row">
     <div class="col-md-8">
         <img class="img-responsive series-fanart" src="{{series.fanart}}">
@@ -17,9 +39,10 @@
 
 <hr>
 
+<!-- Watching and season buttons -->
 <div class = "row"> 
     
-     <div class="user-buttons col-md-6">
+     <div class="user-buttons col-md-8">
         <div class="btn-group" data-toggle="buttons">
           <label class="btn btn-default" id="watching">
             <input type="radio"  value="option1">
@@ -37,7 +60,7 @@
         </div>
     </div>
 
-    <div class="season-buttons col-md-6">
+    <div class="season-buttons col-md-4">
         <div class="btn-group" data-toggle="buttons">
             {% for i in range(season_dict|length) %}
 
@@ -55,14 +78,20 @@
 
 
 
+<!-- episode info -->
+<div class="row">
 
-<div class="row col-md-12">
-    <div class="col-md-6"></div>
-    <div class="episodes-table col-md-6">
-  
-        <label id="season-check">
-          <input type="checkbox"> Check season as watched
-        </label>
+    <div class="col-md-8">
+        {% for season_num in season_dict.keys() %}
+        {% for episode in season_dict[season_num] %}
+          {{ show_episode_info(episode) }}
+        {% endfor %}
+        {% endfor %}
+    </div>
+
+   <!--  episode table -->
+
+    <div class="episodes-table col-md-4">
 
         <table class="table table-hover">
             <thead>
@@ -75,19 +104,21 @@
             
               
                 {% for i in range (season_dict|length) %}
-                    <tbody id = "season{{i+1}}-table">
+                    <tbody id = "season{{i+1}}-table" season="{{i+1}}">
                     {% for e in season_dict[i+1] %}
                     
-                        <tr>
+                        <tr class="episode-row">
 
                             <td>{{e.ep_num}}</td>
                             <td>{{e.title}}</td>
                             <td>
                                 {% if e.id in watched_ep_ids %}
-                                    <p class="ep-watched">watched!</p>
+                                    <button type="button" id = "{{e.id}}" class="btn btn-warning watch-button ep-watched btn-sm">
+                                        Watched!
+                                    </button>
                                 {% else %}
-                                <button type="button" id = "{{e.id}}" class="btn btn-warning watched-button btn-sm">
-                                    <span class="glyphicon glyphicon-ok"></span>
+                                <button type="button" id = "{{e.id}}" class="btn btn-success watch-button ep-unwatched btn-sm">
+                                    Unwatched
                                 </button>
                                 {% endif %}
                             </td>
@@ -102,6 +133,7 @@
     </div>
 
 </div>
+<hr>
 
 
 
@@ -109,7 +141,7 @@
 <script type="text/javascript">
     
     function start(){
-        $("#seson1").click();
+        $("#season1").click();
         console.log('start click')
     }
     
@@ -172,14 +204,37 @@
         $("#"+this.id+"-table").show();
     }
 
-    $('.watched-button').click(function(e) {
-        console.log('watched button clicked!');
+    $('.watch-button').click(function(e) {
+        console.log('watch button clicked!');
         var episodeId = this.id;
         console.log(episodeId);
         var userId = {{current_user.id}};
-        $.post("/add-watched-episode", {episode_id:episodeId, user_id:userId});
+        if ($(this).html()=='Unwatched') {
+                $(this).addClass('ep-watched btn-warning').removeClass('ep-unwatched btn-success').html('Watched!');
+                $.post("/update-watched-episode", {episode_id:episodeId, user_id:userId, status:true});
+            } else {
+                $(this).addClass('ep-unwatched btn-success').removeClass('ep-watched btn-warning').html('Unwatched');
+                $.post("/update-watched-episode", {episode_id:episodeId, user_id:userId, status:false});
+            }
+            
 
-    });
+        });
+
+    $('.episode-row').click(show_episode_info);
+
+    // var all_seasons = {{season_dict | safe}};
+    function show_episode_info(evt){
+        var ep_num = $(this).children()[0].innerHTML
+        var season_num = $(this).parent().attr("season");
+        season_num = parseInt(season_num)
+
+        var episode_div_id = "ep-" + season_num + "-" + ep_num;
+        $(".episode").hide();
+        $("#"+episode_div_id).show();
+        console.log(episode_div_id);
+
+    }
+    
 
     
    

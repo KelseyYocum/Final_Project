@@ -286,13 +286,20 @@ def add_episodes(external_series_id):
                 first_aired = None
 
             title = pyQ(e).find('EpisodeName').text()
-            #overview = pyQ(e).find('Overview').text()
+            overview = pyQ(e).find('Overview').text()
             image = "http://thetvdb.com/banners/"+pyQ(e).find('filename').text()
 
             series = session.query(Series).filter_by(external_id = external_series_id).one()
             series_id = series.id
 
-            ep = Episode(external_id = external_id, ep_num = ep_num, season_num = season_num, first_aired = first_aired, title = title, image = image, series_id = series_id)
+            ep = Episode(external_id = external_id, 
+                            ep_num = ep_num, 
+                            season_num = season_num, 
+                            first_aired = first_aired, 
+                            title = title, 
+                            overview=overview, 
+                            image = image, 
+                            series_id = series_id)
             
             
             
