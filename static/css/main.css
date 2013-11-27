@@ -5,3 +5,29 @@
 .series-header{
      background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#1a82f7), to(#2F2727));
 }
+
+.series-poster{
+    
+}
+
+.series-title{
+    margin-top:0;
+}
+
+.episode-image{
+    margin-top:20px;
+}
+
+.episode-info{
+    margin-top: 10px;
+}
+
+.episodes-table{
+    margin-top: 10px;
+}
+
+.progress{
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+

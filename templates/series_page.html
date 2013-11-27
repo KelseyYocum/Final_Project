@@ -3,11 +3,12 @@
 {% macro show_episode_info(ep) %}
 <div class="episode" id="ep-{{ep.season_num}}-{{ep.ep_num}}" style="display: none">
     <div class="row">
-        <br>
         
-        <div class="col-md-6">
+        
+        <div class="episode-info col-md-6">
             <h4 class="ep-title">{{ep.title}}</h4>
             <p>{{ep.overview}}</p>
+            <a href="/episode/{{ep.id}}">More episode info</a>
 
            
         </div>
@@ -29,13 +30,25 @@
     <div class="col-md-8">
         <img class="img-responsive series-fanart" src="{{series.fanart}}">
     </div>
+
      <div class ="col-md-4">
         <h2 class='series-title'>{{series.title}}</h2>
         <p class="series-overview">{{series.overview}}</p>
 
+
+            <div class="progress">
+                 <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="{{percent_watched}}" aria-valuemin="0" aria-valuemax="100" style="width: {{percent_watched}}%;">
+                    <span class="sr-only">{{percent_watched}}% Complete</span>
+                </div>
+            </div>
+            <p id="progress-percent">You are {{percent_watched}}% complete.</p>
+
+
     </div>
+       
 
 </div>
+
 
 <hr>
 
@@ -142,6 +155,8 @@
     
     function start(){
         $("#season1").click();
+        $("#ep-1-1").show();
+
         console.log('start click')
     }
     
@@ -220,7 +235,8 @@
 
         });
 
-    $('.episode-row').click(show_episode_info);
+    // $('.episode-row').click(show_episode_info);
+    $('.episode-row').hover(show_episode_info);
 
     // var all_seasons = {{season_dict | safe}};
     function show_episode_info(evt){

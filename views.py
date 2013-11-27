@@ -183,7 +183,6 @@ def display_series_info(external_series_id):
     else:
         state = '';
 
-
     
     # all episodes of series organized by season
     #{1:[ep, ep, ep], 2:[ep,ep,ep], ...}
@@ -207,18 +206,28 @@ def display_series_info(external_series_id):
         val.sort(key=operator.attrgetter("ep_num"))
 
 
-
+    percent_watched = round(float((len(watched_ep_ids))/float(len(eps_list)))*100, 1)
+ 
 
 
     return render_template("series_page.html", state=state, 
                                             series = series, 
                                             current_user=current_user,
                                             season_dict=season_dict,
-                                            watched_ep_ids=watched_ep_ids
+                                            watched_ep_ids=watched_ep_ids,
+                                            percent_watched=percent_watched
                                 
                                             ) # where series is a db object, 
                                             # season_dict keys are season numbers, values are lists of ep objs
 
+
+
+@app.route("/episode/<episode_id>")
+def display_episode_info(episode_id):
+
+    episode = DB.query(Episode).filter_by(id = episode_id).one()
+
+    return render_template("episode_page.html", episode=episode)
 
 
 
@@ -324,14 +333,18 @@ def remove_from_favorites():
 
     return "Deleted fav!"
 
+
+
 @app.route("/update-watched-episode", methods = ["POST"])
 def update_watched_episodes():
     user_id = int(request.form.get("user_id"))
     episode_id = int(request.form.get("episode_id"))
-    status = request.formget("status")
-    watched_episode = model.WatchedEpisode(user_id=user_id, episode_id=episode_id)
+    status = request.form.get("status")
+    print status
+    
    
-    if status == True:
+    if status == "true":
+        watched_episode = model.WatchedEpisode(user_id=user_id, episode_id=episode_id)
         DB.add(watched_episode)
         DB.commit()
     else:
@@ -342,17 +355,6 @@ def update_watched_episodes():
     return "success!"
 
 
-# @app.route("/remove-watched-episode", methods = ["POST"])
-# def remove_from_watched_episodes():
-#     user_id = int(request.form.get("user_id"))
-#     episode_id = int(request.form.get("episode_id"))
-   
-
-#     watched_episode = model.WatchedEpisode(user_id=user_id, episode_id=episode_id)
-#     DB.delete(watched_episode)
-#     DB.commit()
-
-#     return "success!"
 
 
 
