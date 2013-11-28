@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block body %}
-<h1>My Shows</h1>
+<h2>My Shows</h2>
 
 
 <div class="row">
@@ -14,6 +14,7 @@
         </ul>
     </div>
 </div>
+<hr>
 
 <div class="series-posters"></div>
 
@@ -40,10 +41,8 @@
                 if (series != 0) {
                     // Make a column
                     var colDiv = $('<div class="col-md-2">');
-                    var img = $('<img class="img-responsive series-poster" alt="Responsive image" src="'+ series.poster +'">')
-                    var link = $('<a class="series-link" href = "/series/'+ series.external_id +'">' + series.title + '</a>');
+                    var img = $('<a class="series-link" href = "/series/'+ series.external_id +'"> <img class="img-responsive series-poster" alt="Responsive image" src="'+ series.poster +'"> </a>');
                     colDiv.append(img);
-                    colDiv.append(link);
                     rowDiv.append(colDiv);
                     console.log(rowDiv)
                 }

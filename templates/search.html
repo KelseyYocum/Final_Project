@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
 {% block body %}
-<div class="row">
+<!-- <div class="row">
     <form role="form" method="post" action="/search">
       <div class="form-group col-md-4">
         <input type="text" class="form-control" name="search" placeholder="Search for series title">
       </div>
     </form>
-</div>
+</div> -->
 
 
 {% if search_input != "" %}
@@ -21,8 +21,8 @@
             {% for s in row %}
                 {% if s != 0 %}
                     <div class="col-md-2">
-                        <img class="img-responsive series-poster"  src="{{s.poster}}">
-                        <a class="series-link" href = "/series/{{s.external_id}}">{{s.title}}</a>
+                        <a class="series-link" href = "/series/{{s.external_id}}"><img class="img-responsive series-poster"  src="{{s.poster}}"></a>
+                        
                     </div>
                 {% endif %}
             {% endfor %}
@@ -32,6 +32,8 @@
 
 </div>
 {% endif %}
+
+
     
 
 

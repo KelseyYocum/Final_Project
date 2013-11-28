@@ -363,20 +363,6 @@ def add_series(external_series_id):
 
 
 
-# def store_series_image(img_url, series): 
-#     img = requests.get('http://thetvdb.com/banners/'+img_url)
-#     img = img.content
-#     f = open('static/img/series'+str(series.id)+'.jpg', 'w')
-#     f.write(img)
-#     f.close()
-
-# def store_episode_image(img_url, episode): 
-#     img = requests.get('http://thetvdb.com/banners/'+img_url)
-#     img = img.content
-#     f = open('static/img/episodes/'+str(episode.series_id)+'/'+str(episode.ep_num)+'.jpg', 'w')
-#     f.write(img)
-#     f.close()
-
 
 ###########################################################
 

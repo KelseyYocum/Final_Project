@@ -135,19 +135,13 @@ def search_results():
         single_series = model.parse_series(single_series_id)
 
         external_id = int(single_series('id').text())
+        title = single_series('SeriesName').text()
 
         if single_series('poster').text() != '':
             poster = "http://thetvdb.com/banners/"+single_series('poster').text()
-        else:
-            poster = "static/img/Poster_Unavailable.jpg"
-
-        title = single_series('SeriesName').text()
-
-        series_obj = model.Series(external_id=external_id, poster=poster, title=title) 
-        series_list.append(series_obj)
-
-  
-
+            series_obj = model.Series(external_id=external_id, poster=poster, title=title) 
+            series_list.append(series_obj)
+        
     series_list=series_tuple_list(series_list)
     print series_list
     
