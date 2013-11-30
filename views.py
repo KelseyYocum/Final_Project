@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, g, session, url_for, flash
+from flask import Flask, render_template, redirect, request, g, session, url_for, flash, jsonify
 from model import session as DB, User, Series, Episode, UserSeries, requests, pq, add_series
 from flask.ext.login import LoginManager, login_required, login_user, current_user
 from flaskext.markdown import Markdown
@@ -183,7 +183,7 @@ def display_series_info(external_series_id):
 
     eps_list = DB.query(Episode).filter_by(series_id=series.id).order_by(Episode.season_num).all()
     season_dict = {}
-    watched_ep_ids =[]
+   
 
     for e in eps_list:
         if season_dict.get(e.season_num) == None:
@@ -191,9 +191,9 @@ def display_series_info(external_series_id):
         else:
             season_dict[e.season_num].append(e)
 
-        count3=DB.query(model.WatchedEpisode).filter_by(episode_id = e.id).count()
-        if count3 != 0:
-            watched_ep_ids.append(e.id)
+        # count3=DB.query(model.WatchedEpisode).filter_by(episode_id = e.id).count()
+        # if count3 != 0:
+        #     watched_ep_ids.append(e.id)
 
     # in each episode list per season key, sort by episode number
     for key, val in season_dict.iteritems():
@@ -207,8 +207,26 @@ def display_series_info(external_series_id):
         rating_value = 0
 
 
-    percent_watched = round(float((len(watched_ep_ids))/float(len(eps_list)))*100, 1)
- 
+    #percent_watched = round(float((len(watched_ep_ids))/float(len(eps_list)))*100, 1)
+    watched_count = DB.query(model.WatchedEpisode).\
+        join(model.WatchedEpisode.episode).\
+        filter(model.Episode.series_id == series.id).\
+        filter(model.WatchedEpisode.user_id == current_user.id).count()
+
+    watched_eps = DB.query(model.WatchedEpisode).\
+        join(model.WatchedEpisode.episode).\
+        filter(model.Episode.series_id == series.id).\
+        filter(model.WatchedEpisode.user_id == current_user.id).all()
+
+    watched_ep_ids=[]
+
+    for ep in watched_eps:
+        watched_ep_ids.append(ep.episode_id)
+
+    print "WATCHED EP IDS", watched_ep_ids
+
+    
+    percent_watched = round(100 * float(watched_count)/float(len(eps_list)), 1)
 
 
     return render_template("series_page.html", state=state, 
@@ -217,8 +235,9 @@ def display_series_info(external_series_id):
                                             season_dict=season_dict,
                                             watched_ep_ids=watched_ep_ids,
                                             rating=rating_value,
-                                            percent_watched=percent_watched
-                                
+                                            percent_watched=percent_watched,
+
+                                            
                                             ) # where series is a db object, 
                                             # season_dict keys are season numbers, values are lists of ep objs
 
@@ -344,17 +363,34 @@ def update_watched_episodes():
     status = request.form.get("status")
     print status
     
-   
     if status == "true":
         watched_episode = model.WatchedEpisode(user_id=user_id, episode_id=episode_id)
         DB.add(watched_episode)
-        DB.commit()
     else:
         watched_episode=DB.query(model.WatchedEpisode).filter_by(user_id=user_id, episode_id=episode_id).one()
         DB.delete(watched_episode)
-        DB.commit()
 
-    return "success!"
+    DB.commit()
+    series = DB.query(model.Series).filter(model.Series.episodes.any(model.Episode.id == episode_id)).one()
+
+    eps_list = DB.query(Episode).filter_by(series_id=series.id).order_by(Episode.season_num).all()
+    season_dict = {}
+    watched_ep_ids =[]
+
+    watched_count = DB.query(model.WatchedEpisode).\
+        join(model.WatchedEpisode.episode).\
+        filter(model.Episode.series_id == series.id).\
+        filter(model.WatchedEpisode.user_id == user_id).count()
+
+    
+    pct = round(100 * float(watched_count)/float(len(eps_list)), 1)
+
+    response = {
+        'success': True,
+        'completion_percentage': pct,
+    }
+
+    return jsonify(response)
 
 
 @app.route("/series/rating", methods = ["POST"])

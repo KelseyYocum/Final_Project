@@ -37,6 +37,9 @@
     margin-bottom: 10px;
 }
 
+.pre-scrollable{
+  max-height: 350px;
+}
 
 /*
     Ratings Stars

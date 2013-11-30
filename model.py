@@ -20,7 +20,7 @@ from lxml import etree
 import urllib
 import requests
 
-engine = create_engine(config.DB_URI, echo=False) 
+engine = create_engine(config.DB_URI, echo=True) 
 session = scoped_session(sessionmaker(bind=engine,
                          autocommit = False,
                          autoflush = False))
@@ -111,7 +111,7 @@ class UserSeries(Base):
     id = Column(Integer, primary_key = True)
     user_id = Column(Integer, ForeignKey('users.id'))
     series_id = Column(Integer, ForeignKey('series.id')) #local series id
-    state = Column(String(65), nullable = False) #enum can be set to "watched", "to-watch", "watching"
+    state = Column(String(65), nullable = False) #enum can be set to "w, "to-watch", "watching"
     
 
     user = relationship("User", backref = "user_series")
@@ -235,8 +235,6 @@ class Recommendation(Base):
 Table('friendship', Base.metadata,
     Column('from_user_id', Integer, ForeignKey('users.id'), primary_key=True),
     Column('to_user_id', Integer, ForeignKey('users.id'), primary_key=True))
-
-
 
 ################## Table Functions #####################
 
