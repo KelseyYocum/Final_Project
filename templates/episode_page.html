@@ -2,6 +2,27 @@
 
 {% block body %}
 
+<div class="row">
+    <div class="col-md-12">
+        <a class="series-link" href="/series/{{series.external_id}}">
+            <img class="img-responsive series-banner" src="{{series.banner}}">
+        </a>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <h2>{{episode.title}}</h2>
+        <h5>Season {{episode.season_num}}</h5>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <h2>{{episode.title}}</h2>
+    </div>
+</div>
+
+ 
+
 {{episode.title}}
 
 {% endblock %}

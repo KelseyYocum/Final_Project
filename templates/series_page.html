@@ -8,7 +8,7 @@
         <div class="episode-info col-md-6">
             <h4 class="ep-title">{{ep.title}}</h4>
             <p>{{ep.overview}}</p>
-            <a href="/episode/{{ep.id}}">More episode info</a>
+            <a href="/series/{{series.id}}/episode/{{ep.id}}">More episode info</a>
 
            
         </div>
@@ -182,6 +182,7 @@
 
     $('.btn-group').button()
 
+
     if ("{{state}}" == "watching") {
         $("#watching").button('toggle');
     };
@@ -194,6 +195,10 @@
         $("#to-watch").button('toggle');
     };
 
+    if ("{{favorite}}" == "True"){
+        $("#favorite").button('toggle');
+    }
+
     $('#watching').click(update_show_state_to_watching);
     $('#watched').click(update_show_state_to_watched);
     $('#to-watch').click(update_show_state_want_to_watch);
@@ -202,7 +207,14 @@
         console.log('link clicked!');
         var seriesId = {{series.id}};
         var userId = {{current_user.id}};
-        $.post("/add-fav-series", {series_id:seriesId, user_id:userId});
+        if ($(this).hasClass('active')){
+            $.post("/remove-fav-series", {series_id:seriesId, user_id:userId});
+
+        } 
+        else{
+            $.post("/add-fav-series", {series_id:seriesId, user_id:userId});
+        }
+        
 
     });
 
@@ -249,29 +261,29 @@
         if (element.hasClass('ep-unwatched')) {
                
 
-                $.post("/update-watched-episode", {
-                    episode_id: episodeId, 
-                    user_id: userId,
-                    status:true
-                }, 
-                function(data, status) {
-                    element.addClass('ep-watched btn-warning').removeClass('ep-unwatched btn-success').html('Watched!');
-                    var pct = data.completion_percentage + "%";
-                    $('#progress .progress-bar').css('width', pct);
-                    $('#progress').attr("arai-valuenow", pct)
-                    $('#progress-percent .percentage').text(pct);
+            $.post("/update-watched-episode", {
+                episode_id: episodeId, 
+                user_id: userId,
+                status:true
+            }, 
+            function(data, status) {
+                element.addClass('ep-watched btn-warning').removeClass('ep-unwatched btn-success').html('Watched!');
+                var pct = data.completion_percentage + "%";
+                $('#progress .progress-bar').css('width', pct);
+                $('#progress').attr("arai-valuenow", pct)
+                $('#progress-percent .percentage').text(pct);
 
 
                 });
-            } else {
-                $.post("/update-watched-episode", {episode_id:episodeId, user_id:userId, status:false},
-                    function(data, status){
-                        element.addClass('ep-unwatched btn-success').removeClass('ep-watched btn-warning').html('Unwatched');
-                        var pct = data.completion_percentage + "%";
-                        $('#progress .progress-bar').css('width', pct);
-                        $('#progress-percent .percentage').text(pct);
+        } else {
+            $.post("/update-watched-episode", {episode_id:episodeId, user_id:userId, status:false},
+                function(data, status){
+                    element.addClass('ep-unwatched btn-success').removeClass('ep-watched btn-warning').html('Unwatched');
+                    var pct = data.completion_percentage + "%";
+                    $('#progress .progress-bar').css('width', pct);
+                    $('#progress-percent .percentage').text(pct);
 
-                    });
+                });
 
                    
             }

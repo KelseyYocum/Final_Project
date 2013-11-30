@@ -177,6 +177,13 @@ def display_series_info(external_series_id):
     else:
         state = '';
 
+    favorite_series = DB.query(model.Favorite).filter_by(series_id=series.id, user_id=current_user.id).first()
+
+    if favorite_series != None:
+        favorite = True
+    else:
+        favorite = False
+
     
     # all episodes of series organized by season
     #{1:[ep, ep, ep], 2:[ep,ep,ep], ...}
@@ -235,7 +242,8 @@ def display_series_info(external_series_id):
                                             season_dict=season_dict,
                                             watched_ep_ids=watched_ep_ids,
                                             rating=rating_value,
-                                            percent_watched=percent_watched,
+                                            favorite=favorite,
+                                            percent_watched=percent_watched
 
                                             
                                             ) # where series is a db object, 
@@ -243,12 +251,13 @@ def display_series_info(external_series_id):
 
 
 
-@app.route("/episode/<episode_id>")
-def display_episode_info(episode_id):
+@app.route("/series/<series_id>/episode/<episode_id>")
+def display_episode_info(series_id, episode_id):
 
     episode = DB.query(Episode).filter_by(id = episode_id).one()
+    series = DB.query(Series).filter_by(id=series_id).one()
 
-    return render_template("episode_page.html", episode=episode)
+    return render_template("episode_page.html", episode=episode, series=series)
 
 
 
@@ -371,7 +380,7 @@ def update_watched_episodes():
         DB.delete(watched_episode)
 
     DB.commit()
-    series = DB.query(model.Series).filter(model.Series.episodes.any(model.Episode.id == episode_id)).one()
+    series = DB.query(Series).filter(Series.episodes.any(Episode.id == episode_id)).one()
 
     eps_list = DB.query(Episode).filter_by(series_id=series.id).order_by(Episode.season_num).all()
     season_dict = {}

@@ -2,6 +2,11 @@
 .poster-row{
     margin-top: 15px
 }
+/* My Shows page */
+
+#my-shows{
+  margin-bottom: 25px;
+}
 
 /* series info for series page */
 .series-header{
@@ -40,6 +45,12 @@
 .pre-scrollable{
   max-height: 350px;
 }
+
+/* Episode Page */
+.series-banner{
+  min-width: 100%;
+}
+
 
 /*
     Ratings Stars
