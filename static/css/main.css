@@ -23,6 +23,12 @@
     margin-bottom: 0;
 }
 
+.series-stats{
+  list-style-type: none;
+  padding-left: 0;
+
+}
+
 /* epidsode info from series page */
 
 .episode-image{
@@ -49,6 +55,19 @@
 /* Episode Page */
 .series-banner{
   min-width: 100%;
+}
+
+.ep-stats{
+  list-style-type: none;
+}
+
+#review-accordian-btn{
+  margin-bottom: 15px;
+}
+
+#review-input{
+  min-height: 100px;
+
 }
 
 

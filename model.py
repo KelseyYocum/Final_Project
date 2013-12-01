@@ -5,6 +5,7 @@
 import config
 import bcrypt
 from datetime import datetime
+import string
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, ForeignKey
@@ -330,7 +331,11 @@ def add_series(external_series_id):
     status = pyQ('Status').text()
     title = pyQ('SeriesName').text()
     overview = pyQ('Overview').text()
-    genre = pyQ('Genre').text() #might want another table? Or can store a list?
+
+    genre_original = pyQ('Genre').text() #might want another table? Or can store a list?
+    genre = genre_original.strip('|')
+    genre=string.replace(genre, '|', ', ')
+    
     banner = "http://thetvdb.com/banners/"+pyQ('banner').text()
     poster = "http://thetvdb.com/banners/"+pyQ('poster').text()
     fanart = "http://thetvdb.com/banners/"+pyQ('fanart').text()

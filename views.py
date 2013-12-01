@@ -261,6 +261,23 @@ def display_episode_info(series_id, episode_id):
 
 
 
+@app.route("/series/<series_id>/episode/<episode_id>", methods = ["POST"])
+def add_review(episode_id, series_id):
+    review_input = request.form.get("review-input")
+
+    review=DB.query(model.Review).filter_by(ep_id=episode_id, user_id=current_user.id).first()
+    if review == None:
+        new_review = model.Review(user_id=current_user.id, ep_id=episode_id, body=review_input)
+        DB.add(new_review)
+        DB.commit()
+    else:
+        review.body=review_input
+        DB.add(review)
+        DB.commit()
+
+    return redirect(url_for("display_episode_info",series_id=series_id, episode_id=episode_id))
+
+
 @app.route("/my-shows")
 def display_my_shows():
     return render_template("my_shows.html")
@@ -426,6 +443,8 @@ def update_series_rating():
     return "successfully updated rating!"
 
 
+
+    
 
 
 if __name__ == "__main__":

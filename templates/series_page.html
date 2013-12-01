@@ -45,14 +45,27 @@
 
         <p class="series-overview">{{series.overview}}</p>
 
-        <!-- progress bar -->
+       <br>
 
-            <div id="progress" class="progress">
+            <ul class="series-stats">
+                <li>Genre: {{series.genre}}</li>
+                <li>First Aired: {{series.first_aired.date()}}</li>
+                {%if series.status == "Continuing" %}
+                <li>Airs on {{series.airs_day_of_week}}s at {{series.airs_time.time()}}</li>
+
+                {% endif %}
+            </ul>
+
+             <!-- progress bar -->
+
+             <div id="progress" class="progress">
                  <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="{{percent_watched}}" aria-valuemin="0" aria-valuemax="100" style="width: {{percent_watched}}%;">
                     <span class="sr-only"><span class="percentage">{{percent_watched}}%</span> Complete</span>
                 </div>
             </div>
             <p id="progress-percent">You are <span class="percentage">{{percent_watched}}%</span> complete.</p>
+
+
 
 
     </div>

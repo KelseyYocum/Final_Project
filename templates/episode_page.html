@@ -12,17 +12,44 @@
 <div class="row">
     <div class="col-md-12">
         <h2>{{episode.title}}</h2>
-        <h5>Season {{episode.season_num}}</h5>
+        <h4 class="ep-sub-head">Season {{episode.season_num}}, Episode {{episode.ep_num}}</h4>
+        <p>First Aired: {{episode.first_aired.date()}}</p>
     </div>
 </div>
 <div class="row">
-    <div class="col-md-12">
-        <h2>{{episode.title}}</h2>
+    <div class="col-md-4">
+         <p>{{episode.overview}}</p>
+
     </div>
+    <div class="col-md-4">
+        <img class="img-responsive episode-image" src="{{episode.image}}">
+    </div>
+    <div class="col-md-4">
+    </div>
+    
+</div>
+<div class="row">
+    <div class="col-md-8">
+        <button type="button" id="review-accordian-btn" class="btn btn-warning" data-toggle="collapse" data-target="#review">
+          Review this show
+        </button>
+        <div id="review" class="collapse">
+            <form role="form" method="post" action="/series/{{series.id}}/episode/{{episode.id}}">
+                  <div class="form-group">
+                    <textarea type="text" class="form-control" name="review-input" placeholder="Write a review!"></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-info btn-sm pull-right">Save</button>
+                 
+            </form>
+        </div>
+    </div>
+    
 </div>
 
- 
 
-{{episode.title}}
+
+
+
+
 
 {% endblock %}
