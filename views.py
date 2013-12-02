@@ -258,6 +258,9 @@ def display_episode_info(series_id, episode_id):
     series = DB.query(Series).filter_by(id=series_id).one()
 
     review=DB.query(Review).filter_by(user_id=current_user.id, ep_id=episode_id).first()
+    if review == None:
+        review = "empty"
+
     friends = current_user.friends
     friend_reviews=[]
     for friend in friends:
@@ -283,6 +286,10 @@ def add_review(episode_id, series_id):
         review.body=review_input
         DB.add(review)
         DB.commit()
+
+    # response = {"review_body":review.body}
+
+    #return jsonify(response)
 
     return redirect(url_for("display_episode_info",series_id=series_id, episode_id=episode_id))
 

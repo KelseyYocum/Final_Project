@@ -71,6 +71,14 @@
 
 }
 
+.review-form{
+  margin-top: 15px;
+}
+
+#save-btn{
+  margin-bottom: 15px;
+}
+
 .ep-sub-head{
   margin-bottom: 0px;
 }
@@ -80,7 +88,7 @@
  /* border-left:1px solid #eee;*/
 }
 
-.my-review{
+.review-area{
   background-color: #eee;
   border-radius: 6px;
 }
@@ -90,6 +98,8 @@
   top: 10px;
   right: 10px;
 }
+
+
 
 /*
     Ratings Stars

@@ -27,39 +27,41 @@
 </div>
 
 <hr>
-
+<button type="button" id="review-accordian-btn" class="btn btn-warning" data-toggle="collapse" data-target="#review">
+              Review this show
+            </button>
+            <div id="review" class="collapse"></div>
 
 <div class="row">
-    {%if review == None%}
+    <div class="col-md-8 review-area"> 
+    
 
-    <div class="col-md-8 my-review">
-        <button type="button" id="review-accordian-btn" class="btn btn-warning" data-toggle="collapse" data-target="#review">
-          Review this show
-        </button>
-        <div id="review" class="collapse">
-            <form role="form" method="post" action="/series/{{series.id}}/episode/{{episode.id}}">
+        <div id="review-input" style="display: none">
+            
+            <form role="form" class="review-form" method="post" action="/series/{{series.id}}/episode/{{episode.id}}">
                   <div class="form-group">
                     <textarea type="text" class="form-control review-textarea" name="review-input" placeholder="Write a review!"></textarea>
                   </div>
-                  <button type="submit" class="btn btn-info btn-sm pull-right">Save</button>
+                  <button type="submit" id="save-btn" class="btn btn-info btn-sm pull-right">Save</button>
                  
             </form>
+           
         </div>
-    </div>
+
     
 
-    {%else%}
 
-    <div class="col-md-8 my-review">
-        <span id="edit-btn" class="glyphicon glyphicon-edit"></span>
-        <h4>My Review</h4>
-        <p>{{review.body}}</p>
-        
+        <div id="my-review" style="display: none">
+            <span id="edit-btn" class="glyphicon glyphicon-edit"></span>
+            <h4>My Review</h4>
+            <p id="review-body">{{review.body}}</p>
+            
+        </div>
+
+    
     </div>
 
-    {% endif %}
 
-    <div class="row">
     <div class="col-md-4 friend-reviews">
         <h4>Friends' Reviews</h4>
         {% if friend_reviews == []%}
@@ -77,15 +79,33 @@
        {% endif %}
 
     </div>
-</div>
+
 </div>
 
 
 <script type="text/javascript">
-    
+
+  
+    if ("{{review}}" ==  "empty") {
+        console.log("{{review}}");
+        $('#review-input').show();
+    } else {
+        $('#my-review').show();
+    };
+  
+    $('#edit-btn').click(function(e){
+        console.log('edit-btn clicked!');
+        var reviewBody = $('#review-body').html()
+        $('#my-review').hide();
+        $('textarea').html(reviewBody);
+        $('#review-input').show()
+
+
+    });
 
 
 
 
 </script>
+<hr>
 {% endblock %}
