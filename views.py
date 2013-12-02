@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, request, g, session, url_for, flash, jsonify
-from model import session as DB, User, Series, Episode, UserSeries, requests, pq, add_series
+from model import session as DB, User, Series, Episode, Review, UserSeries, requests, pq, add_series
 from flask.ext.login import LoginManager, login_required, login_user, current_user
 from flaskext.markdown import Markdown
 import config
@@ -102,7 +102,7 @@ def series_to_dict(series):
     }
 
 
-# where series_list is a list of seris objects
+# where series_list is a list of series objects
 # where series_tuple_list is a list of tuples containg 6 series dictionaries each. 
 # sets of six to account for bootstrap rows and columns 
 # (6, 2-column series entries per row)
@@ -257,7 +257,16 @@ def display_episode_info(series_id, episode_id):
     episode = DB.query(Episode).filter_by(id = episode_id).one()
     series = DB.query(Series).filter_by(id=series_id).one()
 
-    return render_template("episode_page.html", episode=episode, series=series)
+    review=DB.query(Review).filter_by(user_id=current_user.id, ep_id=episode_id).first()
+    friends = current_user.friends
+    friend_reviews=[]
+    for friend in friends:
+        friend_review=DB.query(Review).filter_by(ep_id=episode_id, user_id=friend.id).first()
+        if friend_review != None:
+            friend_reviews.append(friend_review)
+
+
+    return render_template("episode_page.html", episode=episode, series=series, review=review, friend_reviews=friend_reviews)
 
 
 
@@ -265,9 +274,9 @@ def display_episode_info(series_id, episode_id):
 def add_review(episode_id, series_id):
     review_input = request.form.get("review-input")
 
-    review=DB.query(model.Review).filter_by(ep_id=episode_id, user_id=current_user.id).first()
+    review=DB.query(Review).filter_by(ep_id=episode_id, user_id=current_user.id).first()
     if review == None:
-        new_review = model.Review(user_id=current_user.id, ep_id=episode_id, body=review_input)
+        new_review = Review(user_id=current_user.id, ep_id=episode_id, body=review_input)
         DB.add(new_review)
         DB.commit()
     else:

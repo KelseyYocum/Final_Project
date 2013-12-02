@@ -9,34 +9,37 @@
         </a>
     </div>
 </div>
+
 <div class="row">
     <div class="col-md-12">
-        <h2>{{episode.title}}</h2>
-        <h4 class="ep-sub-head">Season {{episode.season_num}}, Episode {{episode.ep_num}}</h4>
-        <p>First Aired: {{episode.first_aired.date()}}</p>
+        <h2>{{episode.title}} <br><small>Season {{episode.season_num}}, Episode {{episode.ep_num}}</small> </h2>   
+        
     </div>
 </div>
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-6">
+        <img class="img-responsive" src="{{episode.image}}">
+    </div>
+    <div class="col-md-6">
          <p>{{episode.overview}}</p>
-
+         <p>First Aired: {{episode.first_aired.date()}}</p>
     </div>
-    <div class="col-md-4">
-        <img class="img-responsive episode-image" src="{{episode.image}}">
-    </div>
-    <div class="col-md-4">
-    </div>
-    
 </div>
+
+<hr>
+
+
 <div class="row">
-    <div class="col-md-8">
+    {%if review == None%}
+
+    <div class="col-md-8 my-review">
         <button type="button" id="review-accordian-btn" class="btn btn-warning" data-toggle="collapse" data-target="#review">
           Review this show
         </button>
         <div id="review" class="collapse">
             <form role="form" method="post" action="/series/{{series.id}}/episode/{{episode.id}}">
                   <div class="form-group">
-                    <textarea type="text" class="form-control" name="review-input" placeholder="Write a review!"></textarea>
+                    <textarea type="text" class="form-control review-textarea" name="review-input" placeholder="Write a review!"></textarea>
                   </div>
                   <button type="submit" class="btn btn-info btn-sm pull-right">Save</button>
                  
@@ -44,12 +47,45 @@
         </div>
     </div>
     
+
+    {%else%}
+
+    <div class="col-md-8 my-review">
+        <span id="edit-btn" class="glyphicon glyphicon-edit"></span>
+        <h4>My Review</h4>
+        <p>{{review.body}}</p>
+        
+    </div>
+
+    {% endif %}
+
+    <div class="row">
+    <div class="col-md-4 friend-reviews">
+        <h4>Friends' Reviews</h4>
+        {% if friend_reviews == []%}
+
+            <p>None of your friends have reviewed this episode yet!</p>
+
+        {% else %}
+        {% for review in friend_reviews %}
+
+            <h5>Written by {{review.user.username}}</h5>
+            <p>{{review.body}}</p>
+            <hr>
+
+       {% endfor %}
+       {% endif %}
+
+    </div>
+</div>
 </div>
 
 
+<script type="text/javascript">
+    
 
 
 
 
-
+</script>
 {% endblock %}

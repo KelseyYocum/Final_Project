@@ -63,13 +63,33 @@
 
 #review-accordian-btn{
   margin-bottom: 15px;
+  margin-top: 15px;
 }
 
-#review-input{
-  min-height: 100px;
+.review-textarea{
+  min-height: 150px;
 
 }
 
+.ep-sub-head{
+  margin-bottom: 0px;
+}
+
+
+.friend-reviews{
+ /* border-left:1px solid #eee;*/
+}
+
+.my-review{
+  background-color: #eee;
+  border-radius: 6px;
+}
+
+#edit-btn{
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
 
 /*
     Ratings Stars

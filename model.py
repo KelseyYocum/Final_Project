@@ -34,6 +34,7 @@ class User(Base, UserMixin):
     id = Column(Integer, primary_key=True)
     email = Column(String(64), nullable=False)
     password = Column(String(64), nullable=False)
+    username = Column(String(64), nullable=False)
     salt = Column(String(64), nullable=False)
 
     friends = relationship('User', secondary='friendship', 
@@ -371,23 +372,23 @@ def add_series(external_series_id):
 
 def create_tables():
     Base.metadata.create_all(engine)
-    u = User(email="test@test.com")
-    u.set_password("unicorn")
+
+    u = User(email="test@test.com", username='Jill')
+    u.set_password("bubbles")
     session.add(u)
 
-    u2 = User(email="test2@test.com")
-    u2.set_password("bubbles")
+
+    u2 = User(email="test2@test.com", username='Paul')
+    u2.set_password("unicorn")
     u2.add_friend(u)
     session.add(u2)
 
-    u3 = User(email='jesse@example.com')
+    u3 = User(email='test3@test.com', username='Sarah')
     u3.set_password('password')
     u3.add_friend(u, u2)
     session.add(u3)
   
-    add_series('269578')
-    add_series('78874')
-    #add_series('70327')
+   
 
    
 
