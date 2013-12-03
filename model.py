@@ -21,7 +21,7 @@ from lxml import etree
 import urllib
 import requests
 
-engine = create_engine(config.DB_URI, echo=True) 
+engine = create_engine(config.DB_URI, echo=False) 
 session = scoped_session(sessionmaker(bind=engine,
                          autocommit = False,
                          autoflush = False))

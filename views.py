@@ -268,8 +268,20 @@ def display_episode_info(series_id, episode_id):
         if friend_review != None:
             friend_reviews.append(friend_review)
 
+    watched = DB.query(model.WatchedEpisode).filter_by(user_id=current_user.id, episode_id=episode_id).first()
+    if watched == None:
+        watched = False;
+    else:
+        watched = True;
 
-    return render_template("episode_page.html", episode=episode, series=series, review=review, friend_reviews=friend_reviews)
+    print "*********",watched
+
+    return render_template("episode_page.html", 
+                                episode=episode, 
+                                series=series, 
+                                review=review, 
+                                friend_reviews=friend_reviews, 
+                                watched=watched)
 
 
 
@@ -287,9 +299,7 @@ def add_review(episode_id, series_id):
         DB.add(review)
         DB.commit()
 
-    # response = {"review_body":review.body}
-
-    #return jsonify(response)
+   
 
     return redirect(url_for("display_episode_info",series_id=series_id, episode_id=episode_id))
 

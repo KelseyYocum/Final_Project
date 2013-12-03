@@ -31,79 +31,82 @@
     <div class="col-md-8">
          <p>{{episode.overview}}</p>
          <p>First Aired: {{episode.first_aired.date()}}</p>
-         <button type="button" id="review-accordian-btn" class="btn btn-warning" data-toggle="collapse" data-target="#review">
-              Review this show
-            </button>
-            <div id="review" class="collapse"></div>
+         {% if watched == False %}
+
+         <button type="button" id="review-accordian-btn" class="btn btn-warning" data-toggle="collapse" data-target="#spoiler" style="display: none">
+              Spoil me!
+        </button>
+           
+
+        {% endif %}
+
     </div>
     
 </div>
 
 <hr>
 
+<div id="spoiler">
+    <div class="row">
+   
 
-<div class="row">
+        <div class="col-md-6 review-area"> 
+        
 
+            <div id="review-input" style="display: none">
+                
+                <form role="form" class="review-form" method="post" action="/series/{{series.id}}/episode/{{episode.id}}">
+                      <div class="form-group">
+                        <textarea type="text" class="form-control review-textarea" name="review-input" placeholder="Write a review!"></textarea>
+                      </div>
+                      <button type="submit" id="save-btn" class="btn btn-info btn-sm pull-right">Save</button>
+                     
+                </form>
+               
+            </div>
 
-    <div class="col-md-6 review-area"> 
-    
+        
+            <div id="my-review" style="display: none">
 
-        <div id="review-input" style="display: none">
-            
-            <form role="form" class="review-form" method="post" action="/series/{{series.id}}/episode/{{episode.id}}">
-                  <div class="form-group">
-                    <textarea type="text" class="form-control review-textarea" name="review-input" placeholder="Write a review!"></textarea>
-                  </div>
-                  <button type="submit" id="save-btn" class="btn btn-info btn-sm pull-right">Save</button>
-                 
-            </form>
-           
+                <span id="edit-btn" class="glyphicon glyphicon-edit"></span>
+                <h4>My Review</h4>
+                {% if review != 'empty' %}
+                    <div id="review-body">{{review.body | markdown}}</div>
+                {% endif %}
+                
+            </div>
+
+        
         </div>
 
-    
+        <div class="col-md-6 friend-reviews">
+            <h4>Friends' Reviews</h4>
+            {% if friend_reviews == []%}
 
+                <p>None of your friends have reviewed this episode yet!</p>
 
-        <div id="my-review" style="display: none">
+            {% else %}
+            {% for review in friend_reviews %}
 
-            <span id="edit-btn" class="glyphicon glyphicon-edit"></span>
-            <h4>My Review</h4>
-            {% if review != 'empty' %}
-                <div id="review-body">{{review.body | markdown}}</div>
-            {% endif %}
-            
+                <h5>Written by {{review.user.username}}</h5>
+                <div class="rating rating-friend-review">
+                    <span class="star" id="5">★</span>
+                    <span class="star" id="4">★</span>
+                    <span class="star" id="3">★</span>
+                    <span class="star" id="2">★</span>
+                    <span class="star" id="1">★</span>
+                </div> 
+                <p>{{review.body}}</p>
+                <hr>
+
+           {% endfor %}
+           {% endif %}
+
         </div>
-
-    
     </div>
-
-    <div class="col-md-6 friend-reviews">
-        <h4>Friends' Reviews</h4>
-        {% if friend_reviews == []%}
-
-            <p>None of your friends have reviewed this episode yet!</p>
-
-        {% else %}
-        {% for review in friend_reviews %}
-
-            <h5>Written by {{review.user.username}}</h5>
-            <div class="rating rating-friend-review">
-                <span class="star" id="5">★</span>
-                <span class="star" id="4">★</span>
-                <span class="star" id="3">★</span>
-                <span class="star" id="2">★</span>
-                <span class="star" id="1">★</span>
-            </div> 
-            <p>{{review.body}}</p>
-            <hr>
-
-       {% endfor %}
-       {% endif %}
-
-    </div>
-    
-    
-
+    <hr>
 </div>
+
 
 
 <script type="text/javascript">
@@ -115,6 +118,13 @@
     } else {
         $('#my-review').show();
     };
+
+    if("{{watched}}" == "False"){
+        console.log("{{watched}}")
+        $('#review-accordian-btn').show()
+        $('#spoiler').addClass("collapse")
+        
+    }
   
     $('#edit-btn').click(function(e){
         console.log('edit-btn clicked!');
@@ -130,5 +140,5 @@
 
 
 </script>
-<hr>
+
 {% endblock %}
