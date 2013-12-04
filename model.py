@@ -56,12 +56,6 @@ class User(Base, UserMixin):
             self.friends.append(f)
             f.friends.append(self)
 
-    # def __repr__(self):
-    #     return "<User(email={1!r})>".format(User, self.email)
-
-    # def __str__(self):
-    #     return "<User(email={1!r})>".format(User, self.email)
-
 
 class Series(Base):
     __tablename__ = "series"
@@ -83,7 +77,6 @@ class Series(Base):
     episodes = relationship("Episode", backref = "series")
     
     
-
 class Episode(Base):
     __tablename__ = "episodes"
     id = Column(Integer, primary_key=True)
@@ -102,9 +95,6 @@ class Episode(Base):
     series_id = Column(Integer, ForeignKey('series.id'))
 
 
-    
-
-
 ################ The Lists ####################
 
 
@@ -112,26 +102,22 @@ class UserSeries(Base):
     __tablename__ = "user_series"
     id = Column(Integer, primary_key = True)
     user_id = Column(Integer, ForeignKey('users.id'))
-    series_id = Column(Integer, ForeignKey('series.id')) #local series id
-    state = Column(String(65), nullable = False) #enum can be set to "w, "to-watch", "watching"
-    
+    series_id = Column(Integer, ForeignKey('series.id'))  # Local series id
+    state = Column(String(65), nullable = False)   # Set to watched, to-watch, watching
 
     user = relationship("User", backref = "user_series")
     series = relationship("Series", backref = "user_series")
-
 
 class WatchedEpisode(Base):
     __tablename__ = "watched_episodes"
     id = Column(Integer, primary_key = True)
     user_id = Column(Integer, ForeignKey('users.id'))
     episode_id = Column(Integer, ForeignKey('episodes.id')) 
-    
 
     user = relationship("User", backref = "watched_episodes")
     episode = relationship("Episode", backref = "watched_episodes")
 
-
-
+# currently set up for only favorite series, not favorite eps or seasons
 class Favorite(Base):
     __tablename__ = "favorites"
     id = Column(Integer, primary_key = True)
@@ -142,17 +128,11 @@ class Favorite(Base):
     user = relationship("User", backref = "favorites")
     series = relationship("Series", backref = "favorites")
 
-    # user.favorites -->list of favorites objs
-    # currently set up for only favorite series, not favorite eps or seasons
-
-
 
 ################## Social Interactions #############################
 
-# class Friend(Base):
-#     __tablename__ = "friends"
 
-
+# currently set up for rating only series, not episodes or seasons
 class Rating(Base):
     __tablename__ = "ratings"
     id = Column(Integer, primary_key = True)
@@ -164,10 +144,7 @@ class Rating(Base):
     user = relationship("User", backref = "ratings")
     series = relationship("Series", backref = "ratings")
 
-    # user.ratings -->list of ratings objs
-    # currently set up for rating only series, not episodes or seasons
-
-
+# currently set up for reviewing only episodes, not series or seasons
 class Review(Base):
     __tablename__ = "reviews"
     id = Column(Integer, primary_key = True)
@@ -180,10 +157,7 @@ class Review(Base):
     user = relationship("User", backref = "reviews")
     episode = relationship("Episode", backref = "reviews")
 
-    # user.reviews -->list of review objs
-    # currently set up for reviewing only episodes, not series or seasons
-
-
+    
 class Comment(Base):
     __tablename__ = "comments"
     id = Column(Integer, primary_key = True)
@@ -196,11 +170,11 @@ class Comment(Base):
     user = relationship("User", backref = "comments")
     review = relationship("Review", backref = "comments")
 
-    # user.comments -->list of commment objs
-    # currently set up for comment on only reviews, not feed stuff (?) 
-
 
 # recommendations from friends, not an engine
+# user.recommendations_given -->list of recommendation objs that user has given
+# user.recommendations_recv -->list of recommendation objs that user has recieved
+# can only recommend series
 class Recommendation(Base):
     __tablename__ = "recommendations"
     id = Column(Integer, primary_key = True)
@@ -219,28 +193,17 @@ class Recommendation(Base):
 
     series = relationship("Series", backref = "recommendations")
 
-    # user.recommendations_given -->list of recommendation objs that user has given
-    # user.recommendations_recv -->list of recommendation objs that user has recieved
-    # can only recommend series
-
-
-# class Friendship(Base):
-#     __tablename__ = "friendships"
-#     id = Column(Integer, primary_key=True)
-#     user_id = Column(Integer, ForeignKey('users.id'))
-#     friend_id = Column(Integer, ForeignKey('users.id'))
-
-#     user = relationship("User", foreign_keys = [user_id], backref = "friends")
-    # friend = relationship("User", foreign_keys = [friend_id], backref = "friends")
-    # user.friends --> list of friendship objs, all friends of user
-
+    
 Table('friendship', Base.metadata,
     Column('from_user_id', Integer, ForeignKey('users.id'), primary_key=True),
     Column('to_user_id', Integer, ForeignKey('users.id'), primary_key=True))
 
+
 ################## Table Functions #####################
 
-#all external ids are strings
+
+# Uses request and pyquery to retrieve and parse xml from tv api
+# pyquery allows you to make jquery queries on xml docs
 def parse_series(external_series_id):
     r = requests.get('http://thetvdb.com/data/series/'+ external_series_id)
     xml_doc = r.text
@@ -300,18 +263,14 @@ def add_episodes(external_series_id):
                             overview=overview, 
                             image = image, 
                             series_id = series_id)
-            
-            
-            
             session.add(ep)
-    
+
     session.commit()
 
 
-#add series to local db from api db given an api db series id
+# Add series to local db from api db given an api db series id
 def add_series(external_series_id):
     pyQ = parse_series(external_series_id)
-
     external_id = int(pyQ('id').text())
 
     date_str=pyQ('FirstAired').text()
@@ -320,27 +279,24 @@ def add_series(external_series_id):
     else:
         first_aired = None
   
-
     time_str = pyQ('Airs_Time').text()
     if time_str != '':
         airs_time = datetime.strptime(time_str, '%I:%M %p')
     else:
         airs_time =None
  
-
     airs_day_of_week = pyQ('Airs_DayOfWeek').text()
     status = pyQ('Status').text()
     title = pyQ('SeriesName').text()
     overview = pyQ('Overview').text()
 
-    genre_original = pyQ('Genre').text() #might want another table? Or can store a list?
+    genre_original = pyQ('Genre').text()
     genre = genre_original.strip('|')
     genre=string.replace(genre, '|', ', ')
     
     banner = "http://thetvdb.com/banners/"+pyQ('banner').text()
     poster = "http://thetvdb.com/banners/"+pyQ('poster').text()
     fanart = "http://thetvdb.com/banners/"+pyQ('fanart').text()
-
 
     s = Series(external_id = external_id, 
                 first_aired = first_aired, 
@@ -357,18 +313,12 @@ def add_series(external_series_id):
     session.add(s)
     session.commit()
     
-
-    #add eps as well
+    #add eps of the series to DB as well
     add_episodes(external_series_id)
 
 
-
-
-
-
-
-
 ###########################################################
+
 
 def create_tables():
     Base.metadata.create_all(engine)
@@ -388,21 +338,6 @@ def create_tables():
     u3.add_friend(u, u2)
     session.add(u3)
   
-   
-
-   
-
-    
-
-    review = Review(user_id = 1, ep_id = 1, body = "commodo libero eget nisl rutrum eleifend. Nulla dapibus euismod pulvinar. Nulla nec turpis vehicula odio malesuada commodo. Suspendisse potenti. Nullam sagittis, est in tempus fermentum, odio neque volutpat erat, et congue nisi leo vel dolor. Aliquam semper porta risus, id ullamcorper est commodo eu. Sed scelerisque volutpat lacus, sit amet posuere sapien aliquam a. Donec consectetur turpis rutrum, porta lectus id, rutrum felis.")
-    session.add(review)
-
-    comment = Comment(user_id = 1, review_id = 1, body = "sweet review")
-    session.add(comment)
-
-    rec = Recommendation(recommender_id = 2, recommendee_id = 1, series_id = 2, body = "blah blah blah")
-    session.add(rec)
-
     session.commit()
 
 if __name__ == "__main__":
