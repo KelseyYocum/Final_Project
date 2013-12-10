@@ -3,7 +3,7 @@
 
 
 import config
-import py-bcrypt
+import bcrypt
 from datetime import datetime
 import string
 
@@ -43,13 +43,13 @@ class User(Base, UserMixin):
 
 
     def set_password(self, password):
-        self.salt = py-bcrypt.gensalt()
+        self.salt = bcrypt.gensalt()
         password = password.encode("utf-8")
-        self.password = py-bcrypt.hashpw(password, self.salt)
+        self.password = bcrypt.hashpw(password, self.salt)
 
     def authenticate(self, password):
         password = password.encode("utf-8")
-        return py-bcrypt.hashpw(password, self.salt.encode("utf-8")) == self.password
+        return bcrypt.hashpw(password, self.salt.encode("utf-8")) == self.password
 
     def add_friend(self, *friends):
         for f in friends:
