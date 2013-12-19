@@ -2,3 +2,4 @@
 env
 .*.swp
 *.db
+.DS_Store
